@@ -1,0 +1,647 @@
+import { useEffect, useState } from 'react';
+import {
+  Briefcase, Search, Clock, X, DollarSign, Filter, ChevronDown, Heart
+} from 'lucide-react';
+import { Button } from '../../components/ui/Button';
+import { Skeleton } from '../../components/ui/Skeleton';
+import { getApiUrl } from '../../config/api';
+import { getAuthHeaders, useAuth } from '../../contexts/AuthContext';
+import { JobSeekerPageProps, Job } from './types';
+import { AdBanner } from '../../components/ads/AdBanner';
+
+import { PlanCard } from '../../components/subscription/PlanCard';
+import { load } from '@cashfreepayments/cashfree-js';
+
+export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
+  const { user } = useAuth();
+  const [browseJobs, setBrowseJobs] = useState<Job[]>([]);
+  const [browseJobsLoading, setBrowseJobsLoading] = useState(true);
+  const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
+  const [isTogglingSave, setIsTogglingSave] = useState<string | null>(null);
+
+  // Subscription state
+  const [subscribingTo, setSubscribingTo] = useState<string | null>(null);
+
+  // Load Razorpay script
+  const handleSubscribe = async (plan: string) => {
+    try {
+      setSubscribingTo(plan);
+
+      // 1. Load Cashfree SDK
+      const cashfree = await load({
+        mode: "production" // "production" or "sandbox"
+      });
+
+      const token = localStorage.getItem('token');
+
+      // 2. Determine Amount
+      let amount = 9900; // default starter
+      if (plan === 'premium') amount = 49900;
+      if (plan === 'pro') amount = 99900;
+
+      // 3. Create Order
+      const orderResponse = await fetch(getApiUrl('/api/payment/create-order'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token} `,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount,
+          planType: plan
+        })
+      });
+
+      if (!orderResponse.ok) {
+        const errData = await orderResponse.json();
+        throw new Error(errData.message || 'Failed to create order');
+      }
+
+      const orderData = await orderResponse.json();
+
+      // 4. Initialize Cashfree Checkout
+      const checkoutOptions = {
+        paymentSessionId: orderData.data.payment_session_id,
+        redirectTarget: "_modal",
+      };
+
+      cashfree.checkout(checkoutOptions).then(async (result: any) => {
+        if (result.error) {
+          console.log("User closed popup or payment error", result.error);
+          if (result.error.message && result.error.message.includes('aborted')) {
+            // User cancelled
+            console.log('Payment cancelled by user');
+          } else {
+            alert(result.error.message || 'Payment cancelled or failed');
+          }
+        }
+        if (result.paymentDetails) {
+          console.log("Payment completed", result.paymentDetails);
+
+          // 5. Verify Payment
+          const verifyResponse = await fetch(getApiUrl('/api/payment/verify'), {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token} `,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              orderId: orderData.data.order_id
+            })
+          });
+
+          const verifyData = await verifyResponse.json();
+
+          if (verifyData.success) {
+            alert(verifyData.message || 'Subscription successful!');
+            window.location.reload();
+          } else {
+            alert(verifyData.message || 'Payment verification failed');
+          }
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Subscription error:', error);
+      alert(error.message || 'Failed to process subscription');
+    } finally {
+      setSubscribingTo(null);
+    }
+  };
+
+  // Filter states
+  const [jobSearchQuery, setJobSearchQuery] = useState('');
+  const [jobLocation, setJobLocation] = useState('');
+  const [jobCategory, setJobCategory] = useState('all');
+  const [jobType, setJobType] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
+
+
+  // Fetch jobs and saved jobs
+  // Fetch jobs and saved jobs
+  // Debounce search query
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+
+  // Debounce search query - Reset page to 1 when filters change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1); // Reset page
+      fetchJobs(1, true); // Fetch first page, reset list
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [jobSearchQuery, jobLocation, jobCategory, jobType]);
+
+  const fetchJobs = async (pageNum = 1, reset = false) => {
+    try {
+      setBrowseJobsLoading(true);
+
+      // Build query string
+      const params = new URLSearchParams();
+      if (jobSearchQuery) params.append('search', jobSearchQuery);
+      if (jobLocation) params.append('location', jobLocation);
+      // Department filter removed
+      if (jobType !== 'all') {
+        if (jobType === 'remote') {
+          params.append('workMode', 'remote');
+        } else {
+          params.append('employmentType', jobType);
+        }
+      }
+      params.append('limit', '20'); // Reduced from 50
+      params.append('page', pageNum.toString());
+
+      const response = await fetch(getApiUrl(`/api/jobs?${params.toString()}`), {
+        headers: getAuthHeaders(),
+      });
+      const data = await response.json();
+      if (data.success) {
+        const transformedJobs = data.data.map((job: any) => ({
+          id: job._id,
+          title: job.jobDetails?.basicInfo?.jobTitle || 'Untitled Position',
+          company: {
+            name: (() => {
+              const postedBy = job.postedBy || {};
+              const profileCompany = postedBy.profile?.company?.name;
+              const onboardingCompany = postedBy.recruiterOnboardingDetails?.company?.name;
+
+              return profileCompany ||
+                onboardingCompany ||
+                (postedBy.profile?.fullName ? `${postedBy.profile.fullName} 's Company` : '') ||
+                (postedBy.fullName ? `${postedBy.fullName}'s Company` : '') ||
+                'Confidential Company';
+            })(),
+            logo: job.postedBy?.profile?.company?.logo || job.postedBy?.recruiterOnboardingDetails?.company?.logo || job.postedBy?.profile?.profilePicture || job.postedBy?.profile?.company?.name?.charAt(0).toUpperCase() || job.postedBy?.recruiterOnboardingDetails?.company?.name?.charAt(0).toUpperCase() || '?',
+          },
+          location: job.jobDetails?.location ?
+            `${job.jobDetails.location.city || ''}${job.jobDetails.location.city && job.jobDetails.location.country ? ', ' : ''}${job.jobDetails.location.country || ''}` || 'Remote'
+            : 'Remote',
+          job_type: job.jobDetails?.basicInfo?.employmentType || 'Full-time',
+          salary_min: job.jobDetails?.compensation?.salary || 0,
+          salary_max: job.jobDetails?.compensation?.salary,
+          category: job.jobDetails?.basicInfo?.department || 'General',
+          description: job.jobDetails?.description?.roleSummary ?
+            (job.jobDetails.description.roleSummary.length > 150 ? job.jobDetails.description.roleSummary.substring(0, 150) + '...' : job.jobDetails.description.roleSummary)
+            : 'No description available for this position.',
+          posted_date: new Date(job.createdAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+          }),
+        }));
+
+        if (reset) {
+          setBrowseJobs(transformedJobs);
+        } else {
+          setBrowseJobs(prev => [...prev, ...transformedJobs]);
+        }
+
+
+        setHasMore(data.pagination?.page < data.pagination?.pages);
+      }
+
+      // Optimally fetch ONLY saved job IDs (only on first load or refresh to keep sync)
+      if (reset) {
+        const savedResponse = await fetch(getApiUrl('/api/jobs/saved/my-saved-jobs?idsOnly=true'), {
+          headers: getAuthHeaders(),
+        });
+        const savedData = await savedResponse.json();
+        if (savedData.success) {
+          setSavedJobIds(savedData.data || []);
+        }
+      }
+
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+    } finally {
+      setBrowseJobsLoading(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchJobs(nextPage, false);
+  };
+
+  const handleToggleSave = async (e: React.MouseEvent, jobId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (!user) {
+      alert("Please login to save jobs");
+      return;
+    }
+
+    if (isTogglingSave) return;
+
+    // Optimistic Update
+    const isSaved = savedJobIds.includes(jobId);
+    setSavedJobIds(prev =>
+      isSaved ? prev.filter(id => id !== jobId) : [...prev, jobId]
+    );
+    setIsTogglingSave(jobId);
+
+    const endpoint = isSaved ? `/api/jobs/${jobId}/unsave` : `/api/jobs/${jobId}/save`;
+    const method = isSaved ? 'DELETE' : 'POST';
+
+    try {
+      const response = await fetch(getApiUrl(endpoint), {
+        method,
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update');
+      }
+    } catch (error) {
+      console.error('Error toggling save:', error);
+      // Revert on error
+      setSavedJobIds(prev =>
+        isSaved ? [...prev, jobId] : prev.filter(id => id !== jobId)
+      );
+      alert("Failed to save job. Please try again.");
+    } finally {
+      setIsTogglingSave(null);
+    }
+  };
+
+  // No client-side filtering needed anymore
+  const filteredJobs = browseJobs;
+
+  const clearAllFilters = () => {
+    setJobSearchQuery('');
+    setJobLocation('');
+    setJobCategory('all');
+    setJobType('all');
+  };
+
+  // Render Plans Section
+  const renderPlans = () => {
+    if (user?.plan && user.plan !== 'free') {
+      return (
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl text-white shadow-xl flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold mb-0.5">
+              You are on the {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} Plan
+            </h2>
+            <p className="text-blue-100 opacity-90 text-sm">
+              {user.plan === 'starter' ? 'You can apply for unlimited jobs.' :
+                user.plan === 'premium' ? 'You have 1 interview opportunity remaining.' :
+                  'You have 3 interview opportunities remaining.'}
+            </p>
+          </div>
+          <div className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-xl font-bold border border-white/20 text-sm">
+            Active
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mb-12">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">Choose Your Plan</h2>
+          <p className="text-slate-600 max-w-2xl mx-auto">
+            Upgrade to unlock job applications and interview opportunities. Select the plan that fits your career goals.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
+          <PlanCard
+            name="Starter"
+            price={99}
+            features={[
+              "Apply for unlimited jobs",
+              "Profile visibility to recruiters",
+              "No interview support included"
+            ]}
+            onSubscribe={() => handleSubscribe('starter')}
+            isLoading={subscribingTo === 'starter'}
+          />
+          <PlanCard
+            name="Premium"
+            price={499}
+            features={[
+              "Everything in Starter",
+              "1 Guaranteed Interview Opportunity",
+              "Priority application status"
+            ]}
+            recommended={true}
+            onSubscribe={() => handleSubscribe('premium')}
+            isLoading={subscribingTo === 'premium'}
+          />
+          <PlanCard
+            name="Pro"
+            price={999}
+            features={[
+              "Everything in Premium",
+              "3 Guaranteed Interview Opportunities",
+              "Direct Admin Support",
+              "Resume Review"
+            ]}
+            onSubscribe={() => handleSubscribe('pro')}
+            isLoading={subscribingTo === 'pro'}
+          />
+        </div>
+      </div>
+    );
+  };
+
+
+
+
+  return (
+    <div className="space-y-10 pb-12">
+      {renderPlans()}
+
+      <div className="relative">
+        {/* Glassmorphic Header - Mobile Optimized */}
+        <div className="relative overflow-hidden rounded-2xl md:rounded-[32px] bg-slate-900 text-white p-5 sm:p-6 md:p-8 shadow-2xl shadow-slate-900/20 isolate mb-3 sm:mb-5">
+          <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
+          <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
+
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 sm:mb-3 text-blue-200">
+              <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" /> Job Search
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-1 sm:mb-2">
+              Browse Jobs
+            </h1>
+            <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-medium">
+              Discover opportunities that match your <span className="text-white font-bold">skills</span> and <span className="text-white font-bold">aspirations</span>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative">
+        {/* Overlay for Free Plan Users - Covers Filter & Jobs */}
+        {(!user?.plan || user.plan === 'free') && (
+          <div className="absolute inset-0 z-40 backdrop-blur-md bg-white/30 flex flex-col items-center justify-center rounded-3xl border border-white/20 pt-[20vh]">
+            <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl text-center max-w-md mx-4 border border-white/50 sticky top-20">
+              <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-white shadow-xl shadow-slate-900/20">
+                <DollarSign className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Unlock Job Listings</h3>
+              <p className="text-slate-600 mb-6 font-medium leading-relaxed">
+                Subscribe to any plan above to view full job details and start applying.
+              </p>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Select a plan above
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className={(!user?.plan || user.plan === 'free') ? 'blur-sm pointer-events-none select-none opacity-50' : ''}>
+
+
+
+          {/* Ad Banner - Home Banner Placement */}
+          <AdBanner position="home-banner" />
+
+          {/* Sticky Search & Filter Bar */}
+          {/* Sticky Search & Filter Bar - Compact Redesign */}
+          <div className="sticky top-[72px] lg:top-4 z-30 mb-6 animate-fade-in-up">
+            <div className="bg-white backdrop-blur-xl border border-slate-200/50 shadow-sm rounded-xl p-2 transition-all duration-300">
+              <div className="flex flex-row gap-2 items-center">
+
+                {/* Merged Search & Location Bar */}
+                <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center md:bg-slate-50 md:border md:border-slate-200/50 md:rounded-xl md:shadow-inner-sm transition-all focus-within:ring-2 focus-within:ring-blue-500/10 focus-within:border-blue-500/20 focus-within:bg-white gap-2 md:gap-0">
+
+                  {/* Search Input */}
+                  <div className="relative flex-1 group w-full">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search jobs, location..."
+                      value={jobSearchQuery}
+                      onChange={(e) => setJobSearchQuery(e.target.value)}
+                      className="block w-full pl-9 pr-3 h-10 bg-slate-50 md:bg-transparent border-transparent md:border-0 focus:bg-white md:focus:bg-transparent focus:border-blue-500/20 md:focus:border-0 focus:ring-2 md:focus:ring-0 focus:ring-blue-500/10 rounded-lg md:rounded-none text-sm font-medium transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Buttons Group */}
+                <div className="flex gap-2 shrink-0">
+                  {/* Filter Toggle - Compact */}
+                  <Button
+                    variant={showFilters ? "primary" : "outline"}
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`inline-flex h-10 px-3 rounded-lg text-sm font-bold gap-1.5 border-0 shadow-none ${showFilters ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                  >
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden sm:inline">Filters</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${showFilters ? 'rotate-180' : ''}`} />
+                  </Button>
+
+
+
+                  {/* Mobile Kebab View */}
+
+                </div>
+              </div>
+            </div>
+
+            {/* Expanded Filters Panel */}
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showFilters ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+              <div className="p-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Job Type</label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <select
+                      value={jobType}
+                      onChange={(e) => setJobType(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border-0 text-slate-700 font-medium focus:ring-2 focus:ring-blue-500/20 cursor-pointer appearance-none"
+                    >
+                      <option value="all">Any Type</option>
+                      <option value="full-time">Full-time</option>
+                      <option value="part-time">Part-time</option>
+                      <option value="contract">Contract</option>
+                      <option value="remote">Remote</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Filters Tags */}
+            {(jobType !== 'all') && (
+              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-100 px-1">
+                {jobType !== 'all' && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100 animate-in fade-in zoom-in duration-200 uppercase">
+                    {jobType}
+                    <button onClick={() => setJobType('all')} className="hover:bg-emerald-100 rounded-full p-0.5 transition-colors"><X className="w-3 h-3" /></button>
+                  </span>
+                )}
+                <button onClick={clearAllFilters} className="text-xs font-bold text-slate-500 hover:text-slate-900 underline ml-auto transition-colors">Clear all</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+
+        {/* Jobs Grid Container with Overlay relative positioning */}
+        <div className="relative">
+          {/* Overlay for Free Plan Users */}
+          {(!user?.plan || user.plan === 'free') && (
+            <div className="absolute inset-0 z-20 backdrop-blur-md bg-white/30 flex flex-col items-center justify-center rounded-3xl border border-white/20">
+              <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl text-center max-w-md mx-4 border border-white/50">
+                <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-white shadow-xl shadow-slate-900/20">
+                  <DollarSign className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 mb-2">Unlock Job Listings</h3>
+                <p className="text-slate-600 mb-6 font-medium leading-relaxed">
+                  Subscribe to any plan above to view full job details and start applying.
+                </p>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Select a plan above
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Actual Job Grid (Blurred if free plan) */}
+          <div className={(!user?.plan || user.plan === 'free') ? 'blur-sm pointer-events-none select-none opacity-50' : ''}>
+            {browseJobsLoading ? (
+
+              <div className="flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="p-4 flex gap-4 items-start bg-white">
+                    {/* Logo */}
+                    <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0" />
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 pr-4 sm:pr-8 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Skeleton className="h-4 w-24 sm:w-32" />
+                        <Skeleton className="h-3 w-16 hidden sm:block" />
+                      </div>
+                      <Skeleton className="h-5 w-40 sm:w-64" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-20 hidden sm:block" />
+                      </div>
+                    </div>
+
+                    {/* Action */}
+                    <div className="hidden sm:flex flex-col items-end gap-2 ml-2">
+                      <Skeleton className="h-8 w-24 rounded-lg" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredJobs.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 md:p-16 border border-slate-100 text-center shadow-sm">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 transform hover:scale-110 transition-transform duration-300">
+                  <Briefcase className="w-10 h-10 text-slate-300" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">No jobs found</h3>
+                <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
+                  We couldn't find any positions matching your search. Try adjusting your filters or search for something else.
+                </p>
+                <Button variant="outline" onClick={clearAllFilters} className="rounded-full px-8 py-3 !border-slate-200 !text-slate-600 hover:!border-slate-300 hover:!bg-slate-50 font-bold">
+                  Clear All Filters
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100 relative z-0">
+                {filteredJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    onClick={() => onNavigate('job-details', job.id)}
+                    className="group relative p-3 sm:p-4 flex gap-3 sm:gap-4 items-start hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+
+
+                    {/* Logo - Left */}
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center overflow-hidden">
+                        {typeof job.company.logo === 'string' && job.company.logo.length > 2
+                          ? <img src={job.company.logo} alt={job.company.name} className="w-full h-full object-cover" />
+                          : <span className="text-sm font-bold text-slate-500">{job.company.name.charAt(0)}</span>}
+                      </div>
+                    </div>
+
+                    {/* Middle Content */}
+                    <div className="flex-1 min-w-0 pr-10 sm:pr-8">
+                      {/* Top Line: Company Name + Time */}
+                      <div className="flex justify-between items-baseline mb-0.5">
+                        <h4 className="font-bold text-slate-900 text-sm sm:text-base truncate pr-2">{job.company.name}</h4>
+                        <span className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0 flex items-center gap-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${job.job_type === 'remote' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                          {job.posted_date}
+                        </span>
+                      </div>
+
+                      {/* Second Line: Job Title */}
+                      <h3 className="font-bold text-slate-800 text-sm sm:text-base mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                        {job.title}
+                      </h3>
+
+                      {/* Third Line: Location + Snippet (Gray) */}
+                      <div className="text-xs sm:text-sm text-slate-500 line-clamp-2 sm:line-clamp-1 flex flex-wrap gap-x-2">
+                        <span className="font-medium text-slate-600">{job.location}</span>
+                        <span className="text-slate-300">•</span>
+                        <span>{job.job_type}</span>
+                        <span className="text-slate-300">•</span>
+                        <span>{job.salary_min > 0 ? `₹${(job.salary_min / 100000).toFixed(1)}L` : 'Negotiable'}</span>
+                      </div>
+                    </div>
+
+                    {/* Right Action: Star Button + View Details */}
+                    <div className="hidden sm:flex flex-col items-end gap-2 ml-4">
+                      <Button
+                        onClick={(e) => { e.stopPropagation(); onNavigate('job-details', job.id); }}
+                        className="px-4 py-1.5 h-auto text-xs font-bold bg-slate-900 text-white rounded-lg hover:bg-black"
+                      >
+                        View Details
+                      </Button>
+                    </div>
+
+                    <button
+                      onClick={(e) => handleToggleSave(e, job.id)}
+                      disabled={isTogglingSave === job.id}
+                      className={`absolute right-4 top-4 sm:static sm:order-none p-1.5 rounded-full transition-all ${savedJobIds.includes(job.id) ? 'text-amber-400 hover:bg-amber-50' : 'text-slate-300 hover:text-slate-500 hover:bg-slate-100'}`}
+                    >
+                      <Heart className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors ${savedJobIds.includes(job.id) ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-slate-600"}`} />
+                    </button>
+
+
+
+
+
+
+
+
+
+
+
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-center mt-8">
+            {hasMore && !browseJobsLoading && (
+              <Button onClick={handleLoadMore} variant="outline" className="px-8 py-3 rounded-xl border-slate-200 hover:bg-slate-50 font-bold text-slate-600">
+                Load More Jobs
+              </Button>
+            )}
+            {browseJobsLoading && browseJobs.length > 0 && (
+              <div className="text-slate-400 font-medium">Loading more...</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div >
+  );
+}
+
+export default JobSeekerBrowseJobs;
