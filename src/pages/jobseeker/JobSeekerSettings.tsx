@@ -10,7 +10,7 @@ import { getApiUrl } from '../../config/api';
 import { getAuthHeaders, useAuth } from '../../contexts/AuthContext';
 import { authApi } from '../../services/api';
 import { JobSeekerPageProps } from './types';
-import { load } from '@cashfreepayments/cashfree-js';
+// Razorpay will be loaded via script tag
 
 export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
   const { profile, signOut, refreshProfile } = useAuth();
@@ -117,13 +117,8 @@ export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
 
   const handlePremiumUpgrade = async () => {
     setPaymentLoading(true);
-    // ... Payment Logic (same as before) ...
-    // ... Payment Logic (same as before) ...
     try {
-      const cashfree = await load({
-        mode: "sandbox" // "production" or "sandbox"
-      });
-
+      // Create order on backend
       const response = await fetch(`${getApiUrl()}/api/payment/create-order`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -132,32 +127,29 @@ export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
       const orderData = await response.json();
       if (!orderData.success) throw new Error(orderData.message);
 
-      const checkoutOptions = {
-        paymentSessionId: orderData.data.payment_session_id,
-        redirectTarget: "_modal",
-      };
+      // Configure Razorpay checkout options
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: orderData.data.finalAmount,
+        currency: orderData.data.currency,
+        name: 'Hire In Minutes',
+        description: 'Premium Plan Subscription',
+        order_id: orderData.data.orderId,
+        handler: async function (response: any) {
+          console.log('Payment successful:', response);
 
-      cashfree.checkout(checkoutOptions).then(async (result: any) => {
-        if (result.error) {
-          // This will true whenever user clicks on close icon inside the modal or any error happens during the payment
-          console.log("User has closed the popup or there is some payment error, Check for Payment Status");
-          console.log(result.error);
-          showToast('Payment cancelled or failed', 'error');
-        }
-        if (result.paymentDetails) {
-          // This will be called whenever the payment is completed irrespective of transaction status
-          console.log("Payment has been completed, Check for Payment Status");
-          console.log(result.paymentDetails);
-
-          // Verify Payment on Backend
+          // Verify payment on backend
           const verifyRes = await fetch(`${getApiUrl()}/api/payment/verify`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({
-              orderId: orderData.data.order_id
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
             })
           });
           const verifyData = await verifyRes.json();
+
           if (verifyData.success) {
             await refreshProfile();
             setCurrentPlan('premium');
@@ -166,12 +158,41 @@ export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
           } else {
             showToast('Payment verification failed. Please contact support.', 'error');
           }
+          setPaymentLoading(false);
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Payment modal closed');
+            showToast('Payment cancelled', 'error');
+            setPaymentLoading(false);
+          }
+        },
+        prefill: {
+          name: profile?.fullName || 'User',
+          email: profile?.email || '',
+          contact: profile?.profile?.phone || ''
+        },
+        theme: {
+          color: '#1e293b'
         }
-      });
+      };
+
+      // Load Razorpay script and open checkout
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => {
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+      };
+      script.onerror = () => {
+        showToast('Failed to load payment gateway', 'error');
+        setPaymentLoading(false);
+      };
+      document.body.appendChild(script);
 
     } catch (e: any) {
       showToast(e.message, 'error');
-    } finally {
       setPaymentLoading(false);
     }
   };

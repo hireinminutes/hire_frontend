@@ -31,7 +31,7 @@ export function FeaturesBento({ onNavigate }: { onNavigate: (page: string) => vo
                                 </div>
                                 <h3 className="text-xl md:text-2xl font-bold text-slate-900">Skill Passport</h3>
                             </div>
-                            <p className="text-base md:text-lg text-slate-600 mb-8 max-w-lg">
+                            <p className="text-base md:text-lg text-slate-600 mb-8 max-w-lg md:max-w-[45%]">
                                 Your new digital hiring identity. Showcase verified skills, earned badges, and project portfolios.
                                 Share it anywhere to stand out from the crowd.
                             </p>
@@ -42,81 +42,99 @@ export function FeaturesBento({ onNavigate }: { onNavigate: (page: string) => vo
                             </div>
 
                             {/* Visual Representation - Hidden on mobile, shown on md+ */}
-                            <div className="hidden md:block absolute bottom-8 right-8 w-80 rounded-2xl p-1 shadow-2xl rotate-[-3deg] group-hover:rotate-0 transition-all duration-500 bg-gradient-to-br from-white/10 to-white/0 hover:scale-105">
-                                <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl p-5 h-full relative overflow-hidden">
-                                    {/* Background Decoration */}
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -ml-10 -mb-10"></div>
+                            <div className="hidden md:block absolute bottom-8 right-8 w-[520px] rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-blue-500/20">
+                                <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 rounded-2xl p-6 relative overflow-hidden border border-slate-700/50">
+                                    {/* Gradient Accents */}
+                                    <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+                                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-indigo-500/20 to-cyan-500/20 rounded-full blur-3xl"></div>
 
-                                    {/* Header: Profile */}
-                                    <div className="flex items-center gap-4 mb-5 relative z-10">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                            <span className="text-base font-bold text-white">AM</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-white font-bold text-lg leading-tight">Alex Morgan</h4>
-                                            <div className="flex items-center gap-1.5 mt-1">
-                                                <div className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-400">DEV</div>
-                                                <span className="text-slate-500 text-[10px]">#8920</span>
-                                            </div>
-                                        </div>
-                                        <div className="ml-auto flex flex-col items-end gap-1">
-                                            <Shield className="w-5 h-5 text-blue-400" fill="currentColor" fillOpacity={0.2} />
-                                            <div className="flex gap-0.5">
-                                                {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-1 h-1 rounded-full bg-green-500"></div>)}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {/* Content Grid */}
+                                    <div className="relative z-10 grid grid-cols-[auto_1fr_auto] gap-6 items-start">
 
-                                    {/* Skills Section - Seek Bars */}
-                                    <div className="mb-6 relative z-10 space-y-3">
-                                        {[
-                                            { name: 'React', pct: 90, color: 'bg-blue-500' },
-                                            { name: 'Node.js', pct: 85, color: 'bg-green-500' },
-                                            { name: 'AWS', pct: 75, color: 'bg-orange-500' },
-                                            { name: 'Figma', pct: 80, color: 'bg-purple-500' }
-                                        ].map((skill) => (
-                                            <div key={skill.name}>
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <span className="text-[10px] font-semibold text-slate-300">{skill.name}</span>
-                                                    <span className="text-[9px] font-mono text-slate-400">{skill.pct}%</span>
+                                        {/* Left: Profile Section */}
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="relative">
+                                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                                                    <span className="text-2xl font-bold text-white">AM</span>
                                                 </div>
-                                                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-                                                    <div
-                                                        className={`h-full rounded-full ${skill.color} shadow-[0_0_10px_rgba(0,0,0,0.3)]`}
-                                                        style={{ width: `${skill.pct}%` }}
-                                                    ></div>
+                                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-slate-900 flex items-center justify-center">
+                                                    <CheckCircle size={12} className="text-white" fill="white" />
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Stats Row */}
-                                    <div className="grid grid-cols-2 gap-3 mb-5 relative z-10">
-                                        <div className="bg-slate-800/50 rounded-lg p-2.5 flex items-center gap-3 border border-slate-700/50">
-                                            <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400">
-                                                <Briefcase size={14} />
-                                            </div>
-                                            <div>
-                                                <div className="text-sm font-bold text-white">33</div>
-                                                <div className="text-[9px] text-slate-400 uppercase tracking-wide">Projects</div>
+                                            <div className="text-center">
+                                                <h4 className="text-white font-bold text-base leading-tight">Alex Morgan</h4>
+                                                <div className="flex items-center gap-1.5 mt-1 justify-center">
+                                                    <div className="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-400">DEV</div>
+                                                </div>
+                                                <span className="text-slate-500 text-[9px] font-mono mt-1 block">#8920</span>
                                             </div>
                                         </div>
-                                        <div className="bg-slate-800/50 rounded-lg p-2.5 flex items-center gap-3 border border-slate-700/50">
-                                            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                                                <TrendingUp size={14} />
+
+                                        {/* Middle: Skills Section */}
+                                        <div className="space-y-2.5 pt-1">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
+                                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Verified Skills</span>
+                                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
                                             </div>
-                                            <div>
-                                                <div className="text-sm font-bold text-white">Top 5%</div>
-                                                <div className="text-[9px] text-slate-400 uppercase tracking-wide">Rank</div>
+                                            {[
+                                                { name: 'React', pct: 90, color: 'from-blue-500 to-cyan-500' },
+                                                { name: 'Node.js', pct: 85, color: 'from-green-500 to-emerald-500' },
+                                                { name: 'AWS', pct: 75, color: 'from-orange-500 to-amber-500' },
+                                                { name: 'Figma', pct: 80, color: 'from-purple-500 to-pink-500' }
+                                            ].map((skill) => (
+                                                <div key={skill.name} className="group">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-[11px] font-semibold text-slate-300 group-hover:text-white transition-colors">{skill.name}</span>
+                                                        <span className="text-[10px] font-mono text-slate-500 group-hover:text-slate-400">{skill.pct}%</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                                                        <div
+                                                            className={`h-full rounded-full bg-gradient-to-r ${skill.color} shadow-lg transition-all duration-500 group-hover:shadow-xl`}
+                                                            style={{ width: `${skill.pct}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Right: Stats & Badge */}
+                                        <div className="flex flex-col gap-3 min-w-[140px]">
+                                            {/* Stats */}
+                                            <div className="space-y-2">
+                                                <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-xl p-3 border border-orange-500/20 backdrop-blur-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                                                            <Briefcase size={14} className="text-orange-400" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-lg font-bold text-white leading-none">33</div>
+                                                            <div className="text-[9px] text-orange-300/80 uppercase tracking-wide">Projects</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-gradient-to-br from-indigo-500/10 to-indigo-500/5 rounded-xl p-3 border border-indigo-500/20 backdrop-blur-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                                                            <TrendingUp size={14} className="text-indigo-400" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-lg font-bold text-white leading-none">Top 5%</div>
+                                                            <div className="text-[9px] text-indigo-300/80 uppercase tracking-wide">Rank</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Verification Badge */}
+                                            <div className="relative mt-auto">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg blur opacity-30"></div>
+                                                <div className="relative bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-2 flex items-center justify-center gap-1.5">
+                                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                                    <span className="text-[10px] font-bold text-green-400 tracking-wide">VERIFIED</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Footer Badge */}
-                                    <div className="relative z-10 w-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-2 flex items-center justify-center gap-2">
-                                        <CheckCircle size={14} className="text-green-400" />
-                                        <span className="text-xs font-bold text-green-400 tracking-wide">Identity Verified</span>
                                     </div>
                                 </div>
                             </div>

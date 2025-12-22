@@ -81,17 +81,18 @@ export function Footer({ onNavigate }: FooterProps) {
                             <div className="flex items-start gap-3">
                                 <MapPin className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
                                 <span>
-                                    123 Tech Park, Cyber City,<br />
-                                    Bangalore, Karnataka 560100
+                                    Mayuri Tech Park, KoderSpark,<br />
+                                    4th floor, Mangalagiri,<br />
+                                    Andhra Pradesh 522503
                                 </span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Phone className="h-5 w-5 text-blue-500 shrink-0" />
-                                <span>+91 98765 43210</span>
+                                <a href="tel:+919866293371" className="hover:text-blue-400 transition-colors">+91 98662 93371</a>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Mail className="h-5 w-5 text-blue-500 shrink-0" />
-                                <span>support@hireinminutes.com</span>
+                                <a href="mailto:info@hireinminutes.in" className="hover:text-blue-400 transition-colors">info@hireinminutes.in</a>
                             </div>
                         </div>
                     </div>

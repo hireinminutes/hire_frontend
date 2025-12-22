@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Footer } from '../components/layout/Footer';
+
 import { Button } from '../components/ui/Button';
-import { Users, Target, Globe, Award, ArrowRight, Sparkles, Zap } from 'lucide-react';
+import { Users, Target, Award, Sparkles, Globe } from 'lucide-react';
 
 interface AboutPageProps {
   onNavigate: (page: string) => void;
@@ -35,21 +35,24 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center space-x-2 bg-white border border-slate-200 rounded-full px-4 py-1.5 mb-8 shadow-sm">
             <Sparkles className="w-4 h-4 text-amber-400" />
-            <span className="text-sm font-semibold text-slate-600 tracking-wide uppercase">Our Mission</span>
+            <span className="text-sm font-semibold text-slate-600 tracking-wide uppercase">About Us</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-tight">
-            We are building the <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">future of hiring.</span>
+            About <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Hire In Minutes</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto leading-relaxed mb-10">
-            Connecting world-class talent with innovative companies through a seamless, skill-first ecosystem.
+          <p className="text-xl md:text-2xl text-slate-500 max-w-3xl mx-auto leading-relaxed mb-4">
+            Hire In Minutes is a fast and reliable hiring platform designed to help companies reduce hiring time by connecting them with pre-screened, interview-ready candidates.
+          </p>
+          <p className="text-lg md:text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed mb-4">
+            All candidates on the platform are evaluated and scored by our internal hiring team, enabling recruiters to shortlist and hire efficiently without additional costs.
+          </p>
+          <p className="text-base md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Hire In Minutes is a product of <span className="font-semibold text-slate-600">Koder Spark Private Limited</span>, a technology-driven company focused on building scalable digital solutions in hiring, education, and workforce enablement.
           </p>
         </div>
       </section>
-
-
 
       {/* Story Section */}
       <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,7 +64,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
             </h2>
             <div className="space-y-4 text-lg text-slate-600 leading-relaxed">
               <p>
-                Founded in 2024, hireinminutes began with a frustration: the traditional hiring process was broken. Resumes were ignored, skills were undervalued, and finding the right fit felt like finding a needle in a haystack.
+                Founded in 2025, hireinminutes began with a frustration: the traditional hiring process was broken. Resumes were ignored, skills were undervalued, and finding the right fit felt like finding a needle in a haystack.
               </p>
               <p>
                 We set out to change that. By combining AI-driven matching with verified skill assessments, we created a platform where candidates are seen for what they can do, not just where they worked.
@@ -87,20 +90,21 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
 
           <div className={`relative transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
             <div className="aspect-square rounded-3xl overflow-hidden bg-slate-100 relative shadow-2xl shadow-blue-900/10">
-              {/* Abstract shape representation for Story Image */}
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Zap size={120} className="text-slate-300/50" />
-              </div>
+              {/* Story Image */}
+              <img
+                src="/hiring-platform-illustration.jpg"
+                alt="Hiring Platform Illustration"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
 
               {/* Floating Cards */}
-              <div className="absolute top-10 right-10 bg-white p-4 rounded-xl shadow-lg animate-bounce duration-[3000ms]">
+              <div className="absolute top-10 right-10 bg-white p-4 rounded-xl shadow-lg">
                 <Award className="w-8 h-8 text-amber-500 mb-2" />
-                <div className="text-xs font-bold text-slate-900">#1 Hiring Platform</div>
+                <div className="text-xs font-bold text-slate-900">Fast Hiring Platform</div>
                 <div className="text-[10px] text-slate-400">Trusted by Tech Giants</div>
               </div>
 
-              <div className="absolute bottom-10 left-10 bg-white p-4 rounded-xl shadow-lg animate-bounce duration-[4000ms] delay-500">
+              <div className="absolute bottom-10 left-10 bg-white p-4 rounded-xl shadow-lg">
                 <Globe className="w-8 h-8 text-blue-500 mb-2" />
                 <div className="text-xs font-bold text-slate-900">Global Reach</div>
                 <div className="text-[10px] text-slate-400">Operating in 25+ Countries</div>
@@ -109,6 +113,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
           </div>
         </div>
       </section>
+
 
       {/* Values / Features Bento Grid */}
       <section className="py-24 bg-slate-900 text-white">
@@ -188,8 +193,6 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
           </Button>
         </div>
       </section>
-
-      <Footer onNavigate={onNavigate} />
     </div>
   );
 }

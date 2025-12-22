@@ -60,7 +60,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                         </div>
                         <div>
                             <h3 className="text-base md:text-lg font-bold text-slate-900 mb-1">Visit Office</h3>
-                            <p className="text-slate-600 text-xs md:text-sm leading-relaxed">123 Innovation Dr, Tech City, Bangalore, India</p>
+                            <p className="text-slate-600 text-xs md:text-sm leading-relaxed">Mayuri Tech Park, KoderSpark, 4th floor, Mangalagiri, Andhra Pradesh 522503</p>
                         </div>
                     </div>
 
@@ -106,21 +106,15 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
                                 <div className="space-y-3 md:space-y-4">
                                     <div>
-                                        <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">Support</p>
-                                        <a href="mailto:support@hireinminutes.com" className="text-xs md:text-sm font-medium hover:text-blue-300 transition-colors block text-white/90 truncate">
-                                            support@hireinminutes.com
-                                        </a>
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">Sales</p>
-                                        <a href="mailto:sales@hireinminutes.com" className="text-xs md:text-sm font-medium hover:text-blue-300 transition-colors block text-white/90 truncate">
-                                            sales@hireinminutes.com
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">Email</p>
+                                        <a href="mailto:info@hireinminutes.in" className="text-xs md:text-sm font-medium hover:text-blue-300 transition-colors block text-white/90 truncate">
+                                            info@hireinminutes.in
                                         </a>
                                     </div>
                                     <div>
                                         <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">Phone</p>
-                                        <a href="tel:+15550000000" className="text-xs md:text-sm font-medium hover:text-blue-300 transition-colors block text-white/90">
-                                            +1 (555) 000-0000
+                                        <a href="tel:+919866293371" className="text-xs md:text-sm font-medium hover:text-blue-300 transition-colors block text-white/90">
+                                            +91 98662 93371
                                         </a>
                                     </div>
                                 </div>

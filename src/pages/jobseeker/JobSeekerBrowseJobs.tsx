@@ -10,7 +10,7 @@ import { JobSeekerPageProps, Job } from './types';
 import { AdBanner } from '../../components/ads/AdBanner';
 
 import { PlanCard } from '../../components/subscription/PlanCard';
-import { load } from '@cashfreepayments/cashfree-js';
+// Razorpay will be loaded via script tag
 
 export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
   const { user } = useAuth();
@@ -22,28 +22,23 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
   // Subscription state
   const [subscribingTo, setSubscribingTo] = useState<string | null>(null);
 
-  // Load Razorpay script
+  // Razorpay script handler
   const handleSubscribe = async (plan: string) => {
     try {
       setSubscribingTo(plan);
 
-      // 1. Load Cashfree SDK
-      const cashfree = await load({
-        mode: "production" // "production" or "sandbox"
-      });
-
       const token = localStorage.getItem('token');
 
-      // 2. Determine Amount
+      // Determine Amount
       let amount = 9900; // default starter
       if (plan === 'premium') amount = 49900;
       if (plan === 'pro') amount = 99900;
 
-      // 3. Create Order
+      // Create Order
       const orderResponse = await fetch(getApiUrl('/api/payment/create-order'), {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token} `,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -59,34 +54,28 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
 
       const orderData = await orderResponse.json();
 
-      // 4. Initialize Cashfree Checkout
-      const checkoutOptions = {
-        paymentSessionId: orderData.data.payment_session_id,
-        redirectTarget: "_modal",
-      };
+      // Configure Razorpay checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: orderData.data.finalAmount,
+        currency: orderData.data.currency,
+        name: 'Hire In Minutes',
+        description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan`,
+        order_id: orderData.data.orderId,
+        handler: async function (response: any) {
+          console.log('Payment successful:', response);
 
-      cashfree.checkout(checkoutOptions).then(async (result: any) => {
-        if (result.error) {
-          console.log("User closed popup or payment error", result.error);
-          if (result.error.message && result.error.message.includes('aborted')) {
-            // User cancelled
-            console.log('Payment cancelled by user');
-          } else {
-            alert(result.error.message || 'Payment cancelled or failed');
-          }
-        }
-        if (result.paymentDetails) {
-          console.log("Payment completed", result.paymentDetails);
-
-          // 5. Verify Payment
+          // Verify Payment
           const verifyResponse = await fetch(getApiUrl('/api/payment/verify'), {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${token} `,
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              orderId: orderData.data.order_id
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
             })
           });
 
@@ -98,13 +87,40 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
           } else {
             alert(verifyData.message || 'Payment verification failed');
           }
+          setSubscribingTo(null);
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Payment cancelled');
+            setSubscribingTo(null);
+          }
+        },
+        prefill: {
+          name: user?.fullName || '',
+          email: user?.email || ''
+        },
+        theme: {
+          color: '#1e293b'
         }
-      });
+      };
+
+      // Load Razorpay script and open checkout
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => {
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+      };
+      script.onerror = () => {
+        alert('Failed to load payment gateway');
+        setSubscribingTo(null);
+      };
+      document.body.appendChild(script);
 
     } catch (error: any) {
       console.error('Subscription error:', error);
       alert(error.message || 'Failed to process subscription');
-    } finally {
       setSubscribingTo(null);
     }
   };
