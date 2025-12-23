@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  MapPin, DollarSign, CheckCircle, FileText, Share2, Calendar, Sparkles, ArrowRight, Briefcase, Hand
+  MapPin, DollarSign, CheckCircle, FileText, Share2, Calendar, Sparkles, Briefcase, Hand
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { getApiUrl } from '../../config/api';
@@ -8,6 +8,7 @@ import { useAuth, getAuthHeaders } from '../../contexts/AuthContext';
 import { Job, Application, JobSeekerPageProps } from './types';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { SkillPassport } from '../../components/candidate/SkillPassport';
+import { UpgradeModal } from '../../components/ui/UpgradeModal';
 
 // Modern Stat Card
 const StatCard = ({ label, value, icon: Icon, bgClass, iconClass, subtext }: any) => (
@@ -65,6 +66,52 @@ const ProfileStrengthWidget = ({ completionScore, onCompleteProfile }: { complet
   </div>
 );
 
+// Interview Request Widget
+const InterviewRequestWidget = ({ interviewCount, plan, onRequest, isLoading }: { interviewCount: number, plan: string, onRequest: () => void, isLoading: boolean }) => {
+  const isEligible = plan === 'premium' || plan === 'pro';
+
+  return (
+    <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm relative overflow-hidden group">
+      <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+        <Sparkles className="w-16 h-16" />
+      </div>
+
+      <div className="relative z-10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-amber-500" />
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 leading-tight">Guaranteed Interview</h3>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Premium Service</p>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex justify-between items-end mb-1">
+            <span className="text-2xl font-black text-slate-900">{interviewCount}</span>
+            <span className="text-xs font-bold text-slate-400 mb-1">Credits left</span>
+          </div>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+            Use your credits to request a guaranteed interview with our placement team.
+          </p>
+        </div>
+
+        <Button
+          onClick={onRequest}
+          disabled={!isEligible || interviewCount <= 0 || isLoading}
+          className={`w-full h-11 rounded-xl font-bold transition-all ${isEligible && interviewCount > 0
+            ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20'
+            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+            }`}
+        >
+          {isLoading ? 'Processing...' : (isEligible ? (interviewCount > 0 ? 'Request Interview' : 'No Credits Left') : 'Upgrade to Request')}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
   const { profile } = useAuth();
   const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
@@ -74,6 +121,8 @@ export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
   const [shareUrl, setShareUrl] = useState('');
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isRequestingInterview, setIsRequestingInterview] = useState(false);
 
   const profileCompletion = useCallback(() => {
     let completion = 0;
@@ -186,6 +235,43 @@ export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
       setIsLoadingData(false);
     }
   }, [profile, checkVerificationStatus]);
+
+  const handleGeneralRequestInterview = async () => {
+    if (!profile || (profile.plan !== 'premium' && profile.plan !== 'pro')) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
+    if (!profile.interviewCount || profile.interviewCount <= 0) {
+      alert("You don't have any interview credits left. Please upgrade your plan.");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to use 1 interview credit to request a guaranteed interview? Our team will contact you within 24-48 hours.")) {
+      return;
+    }
+
+    setIsRequestingInterview(true);
+    try {
+      const response = await fetch(getApiUrl('/api/candidates/request-interview'), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        alert("Success! Your interview request has been sent to our placement team.");
+        window.location.reload(); // Refresh to sync credits
+      } else {
+        alert(data.message || "Failed to request interview.");
+      }
+    } catch (error) {
+      console.error('Error requesting interview:', error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsRequestingInterview(false);
+    }
+  };
 
   useEffect(() => { if (profile) loadDashboardData(); }, [profile, loadDashboardData]);
 
@@ -347,35 +433,51 @@ export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
             ) : (
               <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden">
                 <div className="divide-y divide-slate-100">
-                  {recommendedJobs.slice(0, 3).map((job) => (
-                    <div
-                      key={job.id}
-                      onClick={() => onNavigate('job-details', job.id)}
-                      className="group p-4 hover:bg-slate-50 transition-all cursor-pointer flex items-center gap-4 text-left"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-700 font-bold shrink-0 shadow-sm overflow-hidden">
-                        {typeof job.company.logo === 'string' && job.company.logo.length > 2
-                          ? <img src={job.company.logo} alt="" className="w-full h-full object-cover" />
-                          : job.company.name.charAt(0)}
-                      </div>
+                  {recommendedJobs.slice(0, 3).map((job) => {
+                    const isFreeUser = (profile as any)?.plan === 'free';
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-center mb-0.5">
-                          <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-base truncate">{job.title}</h4>
+                    return (
+                      <div
+                        key={job.id}
+                        onClick={() => {
+                          if (isFreeUser) {
+                            // Redirect to pricing or show modal - for now navigating to pricing/dashboard with intent
+                            setShowUpgradeModal(true);
+                          } else {
+                            onNavigate('job-details', job.id);
+                          }
+                        }}
+                        className="group p-4 hover:bg-slate-50 transition-all cursor-pointer flex items-center gap-4 text-left relative"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-700 font-bold shrink-0 shadow-sm overflow-hidden">
+                          {typeof job.company.logo === 'string' && job.company.logo.length > 2
+                            ? <img src={job.company.logo} alt="" className="w-full h-full object-cover" />
+                            : job.company.name.charAt(0)}
                         </div>
-                        <p className="text-xs font-medium text-slate-500 truncate mb-1.5">{job.company.name}</p>
 
-                        <div className="flex flex-wrap gap-2">
-                          <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded">
-                            <MapPin className="w-3 h-3" /> {job.location}
-                          </span>
-                          <span className="text-[10px] font-medium text-emerald-600 flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
-                            <DollarSign className="w-3 h-3" /> {(job.salary_min / 100000).toFixed(1)}L - {(job.salary_max / 100000).toFixed(1)}L
-                          </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-center mb-0.5">
+                            <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-base truncate">{job.title}</h4>
+                            {isFreeUser && (
+                              <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <Sparkles className="w-3 h-3" /> Upgrade to View
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs font-medium text-slate-500 truncate mb-1.5">{job.company.name}</p>
+
+                          <div className="flex flex-wrap gap-2">
+                            <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded">
+                              <MapPin className="w-3 h-3" /> {job.location}
+                            </span>
+                            <span className="text-[10px] font-medium text-emerald-600 flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
+                              <DollarSign className="w-3 h-3" /> {(job.salary_min / 100000).toFixed(1)}L - {(job.salary_max / 100000).toFixed(1)}L
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -388,6 +490,16 @@ export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
           <div className="hidden lg:block">
             <ProfileStrengthWidget completionScore={profileCompletion()} onCompleteProfile={() => navigateToSection('profile')} />
           </div>
+          {(profile?.plan === 'premium' || profile?.plan === 'pro') && (
+            <div className="hidden lg:block">
+              <InterviewRequestWidget
+                interviewCount={profile?.interviewCount || 0}
+                plan={profile?.plan || 'free'}
+                onRequest={handleGeneralRequestInterview}
+                isLoading={isRequestingInterview}
+              />
+            </div>
+          )}
           <div className="hidden lg:block bg-white rounded-[28px] border border-slate-100 p-1 shadow-sm">
             <SkillPassport />
           </div>
@@ -425,6 +537,14 @@ export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
         </div>
       )}
 
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        onUpgrade={() => {
+          setShowUpgradeModal(false);
+          onNavigate('job-seeker-dashboard', undefined, undefined, undefined, undefined, undefined, 'browse');
+        }}
+      />
     </div>
   );
 }

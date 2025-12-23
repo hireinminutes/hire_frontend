@@ -12,6 +12,8 @@ export function Navbar({ onNavigate, currentPage = 'landing' }: NavbarProps) {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showNavbar, setShowNavbar] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
 
     // Pages with Dark Hero sections where text should be white initially
     const DARK_HERO_PAGES = ['landing', 'for-candidates', 'for-recruiters'];
@@ -25,12 +27,26 @@ export function Navbar({ onNavigate, currentPage = 'landing' }: NavbarProps) {
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
+            const currentScrollY = window.scrollY;
+
+            // Update scrolled state
+            setIsScrolled(currentScrollY > 20);
+
+            // Show/hide navbar based on scroll direction
+            if (currentScrollY < lastScrollY || currentScrollY < 100) {
+                // Scrolling up or near top - show navbar
+                setShowNavbar(true);
+            } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                // Scrolling down and past 100px - hide navbar
+                setShowNavbar(false);
+            }
+
+            setLastScrollY(currentScrollY);
         };
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [lastScrollY]);
 
     // Close mobile menu on resize
     useEffect(() => {
@@ -86,9 +102,10 @@ export function Navbar({ onNavigate, currentPage = 'landing' }: NavbarProps) {
     return (
         <>
             <nav
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${isScrolled
-                    ? 'bg-white/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-b border-white/20'
-                    : 'bg-transparent py-2'
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${showNavbar ? 'translate-y-0' : '-translate-y-full'
+                    } ${isScrolled
+                        ? 'bg-white/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-b border-white/20'
+                        : 'bg-transparent py-2'
                     }`}
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -116,19 +133,29 @@ export function Navbar({ onNavigate, currentPage = 'landing' }: NavbarProps) {
                                 ? 'bg-white/10 border-white/10 backdrop-blur-sm'
                                 : 'bg-white/40 border-white/40 backdrop-blur-md shadow-sm'
                             }`}>
-                            {navItems.map((item) => (
-                                <button
-                                    key={item.page}
-                                    onClick={() => handleNavClick(item.page)}
-                                    className={`relative px-4 py-1.5 text-sm font-semibold rounded-full transition-all group overflow-hidden ${isDarkTheme
-                                        ? 'text-slate-200 hover:text-white'
-                                        : 'text-slate-600 hover:text-slate-900'
-                                        }`}
-                                >
-                                    <span className="relative z-10">{item.label}</span>
-                                    <span className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 transform scale-90 group-hover:scale-100 ${isDarkTheme ? 'bg-white/10' : 'bg-white'}`}></span>
-                                </button>
-                            ))}
+                            {navItems.map((item) => {
+                                const isActive = currentPage === item.page;
+                                return (
+                                    <button
+                                        key={item.page}
+                                        onClick={() => handleNavClick(item.page)}
+                                        className={`relative px-4 py-1.5 text-sm font-semibold rounded-full transition-all group overflow-hidden ${isActive
+                                            ? isDarkTheme
+                                                ? 'text-white bg-white/20'
+                                                : 'text-slate-900 bg-white shadow-sm'
+                                            : isDarkTheme
+                                                ? 'text-slate-200 hover:text-white'
+                                                : 'text-slate-600 hover:text-slate-900'
+                                            }`}
+                                    >
+                                        <span className="relative z-10">{item.label}</span>
+                                        {!isActive && (
+                                            <span className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300 transform scale-90 group-hover:scale-100 ${isDarkTheme ? 'bg-white/10' : 'bg-white'
+                                                }`}></span>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         {/* Desktop Auth Buttons / User Menu */}
@@ -252,15 +279,21 @@ export function Navbar({ onNavigate, currentPage = 'landing' }: NavbarProps) {
 
                     <div className="space-y-2 mb-8">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Navigation</span>
-                        {navItems.map((item) => (
-                            <button
-                                key={item.page}
-                                onClick={() => handleNavClick(item.page)}
-                                className="w-full text-left px-4 py-4 text-lg font-bold text-slate-900 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-transparent hover:border-blue-100/50"
-                            >
-                                {item.label}
-                            </button>
-                        ))}
+                        {navItems.map((item) => {
+                            const isActive = currentPage === item.page;
+                            return (
+                                <button
+                                    key={item.page}
+                                    onClick={() => handleNavClick(item.page)}
+                                    className={`w-full text-left px-4 py-4 text-lg font-bold rounded-2xl transition-all border ${isActive
+                                        ? 'text-blue-600 bg-blue-50 border-blue-200'
+                                        : 'text-slate-900 hover:text-blue-600 hover:bg-blue-50 border-transparent hover:border-blue-100/50'
+                                        }`}
+                                >
+                                    {item.label}
+                                </button>
+                            );
+                        })}
                     </div>
 
                     <div className="mt-auto space-y-4">

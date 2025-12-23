@@ -16,7 +16,8 @@ import {
   RecruiterProfile,
   VerificationApplication,
   Course,
-  ContactSubmission
+  ContactSubmission,
+  AdminNotification
 } from './admin/types';
 
 // Import tab components
@@ -67,6 +68,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     alerts?: any[];
     ads?: any[];
     contacts?: any[];
+    adminNotifications?: any[];
     lastFetch?: { [key: string]: number };
   }>({ lastFetch: {} });
 
@@ -186,6 +188,10 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
   const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
 
+  // Admin notifications states
+  const [adminNotifications, setAdminNotifications] = useState<AdminNotification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
   // Stats state
   const [stats, setStats] = useState({
     totalCandidates: 0,
@@ -299,12 +305,16 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
         fetchAds(1, true); // Fetch page 1, reset list
       }
     } else if (activeSection === 'notifications') {
-      if (isCacheValid('contacts') && dataCache.contacts) {
+      if (isCacheValid('contacts') && dataCache.contacts && isCacheValid('adminNotifications') && dataCache.adminNotifications) {
         setContactSubmissions(dataCache.contacts);
+        setAdminNotifications(dataCache.adminNotifications);
         setContactsLoading(false);
+        setNotificationsLoading(false);
       } else {
         setContactsLoading(true);
+        setNotificationsLoading(true);
         fetchContactSubmissions();
+        fetchAdminNotifications();
       }
     }
   }, [activeSection]);
@@ -355,18 +365,12 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
       setStatsLoading(true);
       const token = localStorage.getItem('token');
 
-      // 1. Fetch lightweight stats
-      const statsRes = await fetch(`${API_BASE_URL}/api/admin/stats`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      // 2. Fetch only recent items for widgets (limit=5)
-      // These run in parallel with stats fetch or after
-      const [candidatesRes, recruitersRes, jobsRes] = await Promise.all([
+      // 1. Fetch all data in parallel for better performance
+      const [statsRes, candidatesRes, recruitersRes, jobsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE_URL}/api/admin/candidates?limit=5`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE_URL}/api/admin/recruiters/pending?limit=5`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE_URL}/api/jobs?limit=5`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        // fetch(`${API_BASE_URL}/api/courses?limit=5`, { headers: { 'Authorization': `Bearer ${token}` } }) // Commented out to avoid unused var
+        fetch(`${API_BASE_URL}/api/jobs?limit=5`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       const statsData = statsRes.ok ? await statsRes.json() : { data: {} };
@@ -642,7 +646,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     try {
       setContactsLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/contact/all?limit=100`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/messages?limit=100`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -655,6 +659,26 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
       console.error('Error fetching contact submissions:', error);
     } finally {
       setContactsLoading(false);
+    }
+  };
+
+  const fetchAdminNotifications = async () => {
+    try {
+      setNotificationsLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const notificationsData = data.data || [];
+        setAdminNotifications(notificationsData);
+        updateCache('adminNotifications', notificationsData);
+      }
+    } catch (error) {
+      console.error('Error fetching admin notifications:', error);
+    } finally {
+      setNotificationsLoading(false);
     }
   };
 
@@ -750,7 +774,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     }
   };
 
-  const handleUpdateScore = async (candidateId: string, score: number, level: string, verifiedSkills: string[]) => {
+  const handleUpdateScore = async (candidateId: string, score: number, level: string, verifiedSkills: string[], isVerified: boolean) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/admin/candidates/${candidateId}/score`, {
@@ -759,13 +783,32 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ score, level, verifiedSkills })
+        body: JSON.stringify({ score, level, verifiedSkills, isVerified })
       });
 
       const data = await response.json();
 
       if (data.success) {
         alert('Score updated successfully!');
+
+        // Optimistic update
+        setCandidates(candidates.map(c => {
+          if (c.id === candidateId) {
+            return {
+              ...c,
+              status: isVerified ? 'verified' : 'unverified',
+              skillPassport: {
+                ...c.skillPassport,
+                score,
+                level,
+                verifiedSkills,
+                badgeId: c.skillPassport?.badgeId
+              }
+            };
+          }
+          return c;
+        }));
+
         if (activeSection === 'candidates') fetchCandidates();
       } else {
         alert(data.message || 'Failed to update score');
@@ -1271,6 +1314,21 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     }
   };
 
+  const handleMarkNotificationRead = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${API_BASE_URL}/api/admin/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setAdminNotifications(adminNotifications.map(n =>
+        n._id === id ? { ...n, read: true } : n
+      ));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
   const handleDeleteContact = async (contactId: string) => {
     try {
       const token = localStorage.getItem('token');
@@ -1382,6 +1440,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
               candidates={candidates}
               jobs={jobs}
               pendingApprovals={pendingApprovals}
+              adminName={profile?.fullName || 'Admin'}
               onNavigate={onNavigate}
             />
           )}
@@ -1428,7 +1487,6 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
               onApprove={handleApproveRecruiter}
               onReject={handleRejectRecruiter}
               onViewProfile={(id) => handleViewRecruiterProfile(id)}
-              recruiters={recruiters}
               onExport={handleExportApprovals}
             />
           )}
@@ -1504,11 +1562,15 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
             <NotificationsTab
               contacts={contactSubmissions}
               contactsLoading={contactsLoading}
+              adminNotifications={adminNotifications}
+              notificationsLoading={notificationsLoading}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               onViewContact={handleViewContact}
               onDeleteContact={handleDeleteContact}
               onMarkAsRead={handleMarkAsRead}
+              onMarkNotificationRead={handleMarkNotificationRead}
+              onSendInterview={handleSendInterview}
             />
           )}
         </div>

@@ -1,4 +1,4 @@
-import { Briefcase, PlusCircle, MapPin, Calendar, Clock, DollarSign, Search, Filter, MoreVertical } from 'lucide-react';
+import { Briefcase, PlusCircle, MapPin, Calendar, Clock, IndianRupee, Search, Filter, MoreVertical } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { RecruiterPageProps, Job } from './types';
 import { useState } from 'react';
@@ -179,7 +179,7 @@ export function RecruiterJobs({ onNavigate, myJobs, onPostJob, loading, profile 
               <div className="mt-auto border-t border-slate-50 pt-4 space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-500 flex items-center">
-                    <DollarSign className="h-3.5 w-3.5 mr-1" />
+                    <IndianRupee className="h-3.5 w-3.5 mr-1" />
                     Salary
                   </span>
                   <span className="font-semibold text-slate-900">
@@ -198,17 +198,10 @@ export function RecruiterJobs({ onNavigate, myJobs, onPostJob, loading, profile 
 
                 <div className="flex gap-2 pt-2">
                   <Button
-                    variant="outline"
-                    onClick={() => onNavigate('job-details', job._id || job.id)}
-                    className="flex-1 border-slate-200 hover:bg-slate-50 text-slate-600"
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white"
+                    onClick={() => onNavigate('recruiter-dashboard', job._id || job.id, undefined, undefined, undefined, undefined, 'edit-job')}
                   >
-                    View
-                  </Button>
-                  <Button
-                    className="flex-1 bg-slate-900 hover:bg-slate-800 text-white"
-                    onClick={() => onNavigate('job-details', job._id || job.id)}
-                  >
-                    Manage
+                    Edit
                   </Button>
                 </div>
               </div>

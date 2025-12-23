@@ -47,6 +47,7 @@ interface User {
   fullName: string;
   role: string;
   plan?: string;
+  interviewCount?: number;
   isVerified?: boolean;
   isApproved?: boolean;
   hasPaidJobAccess?: boolean;

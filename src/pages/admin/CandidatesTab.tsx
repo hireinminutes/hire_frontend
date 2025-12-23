@@ -16,7 +16,7 @@ interface CandidatesTabProps {
   onDeleteCandidate: (candidate: FormattedCandidate) => void;
   onSendInterview: (candidateId: string, link: string) => Promise<void>;
   onUpdateCredits: (candidateId: string, count: number) => Promise<void>;
-  onUpdateScore: (candidateId: string, score: number, level: string, verifiedSkills: string[]) => Promise<void>;
+  onUpdateScore: (candidateId: string, score: number, level: string, verifiedSkills: string[], isVerified: boolean) => Promise<void>;
   onSendBulkEmail: (data: { userType: string; subject: string; message: string }) => Promise<void>;
   onExport: () => void;
 }
@@ -42,7 +42,7 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
   const [interviewLink, setInterviewLink] = useState('');
   const [newCreditCount, setNewCreditCount] = useState<number>(0);
   const [scoreModalOpen, setScoreModalOpen] = useState(false);
-  const [scoreForm, setScoreForm] = useState({ score: 0, level: 'Beginner', verifiedSkills: '' });
+  const [scoreForm, setScoreForm] = useState({ score: 0, level: 'Beginner', verifiedSkills: '', isVerified: false });
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [emailForm, setEmailForm] = useState({ userType: 'All', subject: '', message: '' });
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -62,7 +62,6 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
 
   const stats = {
     total: candidates.length,
-    verified: candidates.filter(c => c.status === 'verified').length,
     premium: candidates.filter(c => c.plan === 'premium').length,
     pro: candidates.filter(c => c.plan === 'pro').length
   };
@@ -131,7 +130,8 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
     setScoreForm({
       score: candidate.skillPassport?.score || 0,
       level: candidate.skillPassport?.level || 'Beginner',
-      verifiedSkills: candidate.skillPassport?.verifiedSkills?.join(', ') || ''
+      verifiedSkills: candidate.skillPassport?.verifiedSkills?.join(', ') || '',
+      isVerified: candidate.status === 'verified'
     });
     setScoreModalOpen(true);
   };
@@ -142,7 +142,7 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
 
     try {
       const skillsArray = scoreForm.verifiedSkills.split(',').map(s => s.trim()).filter(Boolean);
-      await onUpdateScore(selectedCandidateId, scoreForm.score, scoreForm.level, skillsArray);
+      await onUpdateScore(selectedCandidateId, scoreForm.score, scoreForm.level, skillsArray, scoreForm.isVerified);
       setScoreModalOpen(false);
     } catch (error) {
       console.error('Failed to update score', error);
@@ -229,10 +229,6 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
             <p className="text-2xl font-bold text-white mt-1">{stats.total}</p>
           </div>
           <div>
-            <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">Verified</p>
-            <p className="text-2xl font-bold text-green-400 mt-1">{stats.verified}</p>
-          </div>
-          <div>
             <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">Premium Users</p>
             <p className="text-2xl font-bold text-amber-400 mt-1">{stats.premium}</p>
           </div>
@@ -283,14 +279,13 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Candidate Detail</th>
                 <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Plan</th>
                 <th className="hidden lg:table-cell px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Interviews</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Status</th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredCandidates.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center">
+                  <td colSpan={4} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                         <Users className="h-8 w-8 text-slate-400" />
@@ -350,14 +345,6 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
                         ) : (
                           <span className="text-xs text-slate-400">Not included</span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${candidate.status === 'verified' ? 'bg-green-50 text-green-700 border-green-200' :
-                          candidate.status === 'unverified' ? 'bg-slate-100 text-slate-600 border-slate-200' :
-                            'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}>
-                          {candidate.status === 'verified' ? 'Verified' : 'Unverified'}
-                        </span>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity">
@@ -469,9 +456,22 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
                 <textarea
                   value={scoreForm.verifiedSkills}
                   onChange={(e) => setScoreForm({ ...scoreForm, verifiedSkills: e.target.value })}
-                  placeholder="React, Node.js, System Design"
+                  placeholder="React-90, Node.js-85, System Design-75"
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 h-24"
                 />
+                <p className="text-xs text-slate-500 mt-1">Format: Skill-Score (0-100), e.g. "React-90, Node-80"</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Verification Status</label>
+                <select
+                  value={scoreForm.isVerified ? 'verified' : 'unverified'}
+                  onChange={(e) => setScoreForm({ ...scoreForm, isVerified: e.target.value === 'verified' })}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                >
+                  <option value="unverified">Unverified Candidate</option>
+                  <option value="verified">Verified Candidate</option>
+                </select>
               </div>
 
               <div className="flex justify-end gap-3 pt-2">

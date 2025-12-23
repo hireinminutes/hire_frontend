@@ -17,6 +17,15 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-100 selection:text-blue-900">
 
+      {/* Mobile Floating FAQ Tag */}
+      <button
+        onClick={() => onNavigate('faq')}
+        className="md:hidden fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-black text-white px-1.5 py-4 rounded-l-md shadow-lg hover:shadow-xl transition-all"
+        style={{ writingMode: 'vertical-rl' }}
+      >
+        <span className="text-[10px] font-bold tracking-wider">FAQS</span>
+      </button>
+
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03]"
         style={{
@@ -97,17 +106,51 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                 className="absolute inset-0 w-full h-full object-cover"
               />
 
-              {/* Floating Cards */}
-              <div className="absolute top-10 right-10 bg-white p-4 rounded-xl shadow-lg">
-                <Award className="w-8 h-8 text-amber-500 mb-2" />
-                <div className="text-xs font-bold text-slate-900">Fast Hiring Platform</div>
-                <div className="text-[10px] text-slate-400">Trusted by Tech Giants</div>
-              </div>
+              {/* Professional ID Card */}
+              <div className="absolute bottom-8 left-8 right-8 bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl shadow-2xl border border-white/10">
+                <div className="flex items-start gap-4 mb-4">
+                  {/* Avatar */}
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                      HM
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
 
-              <div className="absolute bottom-10 left-10 bg-white p-4 rounded-xl shadow-lg">
-                <Globe className="w-8 h-8 text-blue-500 mb-2" />
-                <div className="text-xs font-bold text-slate-900">Global Reach</div>
-                <div className="text-[10px] text-slate-400">Operating in 25+ Countries</div>
+                  {/* Info */}
+                  <div className="flex-1">
+                    <h4 className="text-white font-bold text-lg mb-1">Hire In Minutes</h4>
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 rounded-md">
+                      <span className="text-xs font-bold text-blue-300 uppercase">Platform</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10">
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-amber-400 mb-1">500+</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wide">Companies</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-blue-400 mb-1">Top 1%</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wide">Platform</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-green-400 uppercase tracking-wide font-bold">Verified</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -184,12 +227,6 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-xl shadow-blue-500/30 hover:scale-105 transition-transform"
           >
             Get Started Now
-          </Button>
-          <Button
-            onClick={() => onNavigate('contact')}
-            className="bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 px-8 py-4 rounded-full text-lg font-semibold hover:scale-105 transition-transform"
-          >
-            Contact Sales
           </Button>
         </div>
       </section>

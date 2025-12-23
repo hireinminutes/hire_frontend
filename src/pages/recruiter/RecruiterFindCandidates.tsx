@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UserCheck, CheckCircle, Mail, Search, MapPin, Briefcase, GraduationCap, X } from 'lucide-react';
+import { UserCheck, CheckCircle, Mail, Search, MapPin, Briefcase, GraduationCap, X, Zap, Crown } from 'lucide-react';
 
 import { Button } from '../../components/ui/Button';
 import { RecruiterPageProps, Candidate } from './types';
@@ -68,15 +68,35 @@ export function RecruiterFindCandidates({ candidates, loadingCandidates }: Recru
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredCandidates.map((candidate) => (
           <div key={candidate._id} className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:border-blue-200 transition-all group duration-300 relative flex flex-col h-full">
-            {/* Verified Badge */}
-            <div className="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100 uppercase tracking-wide">
+            {/* Premium/Pro Badge */}
+            {(candidate.plan === 'premium' || candidate.plan === 'pro') && (
+              <div className={`absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wide shadow-sm z-10 ${candidate.plan === 'premium'
+                ? 'bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-200'
+                : 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 border-purple-200'
+                }`}>
+                {candidate.plan === 'premium' ? <Crown className="h-3.5 w-3.5 fill-amber-500 text-amber-600" /> : <Zap className="h-3.5 w-3.5 fill-purple-500 text-purple-600" />}
+                {candidate.plan}
+              </div>
+            )}
+
+            {/* Verified Badge (Positioned differently if plan badge exists) */}
+            <div className={`absolute ${candidate.plan === 'premium' || candidate.plan === 'pro' ? 'top-16' : 'top-6'} right-6 flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100 uppercase tracking-wide`}>
               <CheckCircle className="h-3.5 w-3.5" />
               Verified
             </div>
 
             <div className="flex items-start gap-5 mb-5">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-500 font-bold text-2xl shadow-inner border border-white/50">
-                {candidate.profile.fullName.charAt(0)}
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-slate-500 font-bold text-2xl shadow-inner border-2 ${candidate.plan === 'premium'
+                ? 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 text-amber-600'
+                : candidate.plan === 'pro'
+                  ? 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 text-purple-600'
+                  : 'bg-gradient-to-br from-slate-100 to-slate-200 border-white/50'
+                }`}>
+                {candidate.profile.profilePicture ? (
+                  <img src={candidate.profile.profilePicture} alt="" className="w-full h-full object-cover rounded-2xl" />
+                ) : (
+                  candidate.profile.fullName.charAt(0)
+                )}
               </div>
               <div className="pt-1">
                 <h3 className="font-bold text-slate-900 text-xl group-hover:text-blue-600 transition-colors">

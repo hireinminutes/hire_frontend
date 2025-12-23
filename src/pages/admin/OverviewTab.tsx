@@ -63,6 +63,7 @@ interface OverviewTabProps {
   candidates: FormattedCandidate[];
   jobs: FormattedJob[];
   pendingApprovals: FormattedRecruiterApproval[];
+  adminName?: string;
   onNavigate?: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string) => void;
 }
 
@@ -72,6 +73,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   candidates,
   jobs,
   pendingApprovals,
+  adminName = 'Admin',
   onNavigate
 }) => {
   const getRecentActivity = () => {
@@ -161,7 +163,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="max-w-2xl">
-            <h1 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight">Welcome back, Admin! 👋</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight">Welcome back, {adminName}! 👋</h1>
             <p className="text-slate-300 text-lg leading-relaxed">
               Here’s what’s happening with your job board today. You have <span className="text-white font-semibold border-b border-white/30 pb-0.5">{stats.pendingApprovals} pending approvals</span> requiring your attention.
             </p>

@@ -67,6 +67,8 @@ export function RecruiterLayout({
     }
   }, [profile]);
 
+
+
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Determine current page title

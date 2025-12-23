@@ -143,12 +143,7 @@ export function AboutSection({ onNavigate }: { onNavigate: (page: string) => voi
                         AI-powered mock interviews, and a digital Skill Passport that stands out.
                     </ContainerAnimated>
                     <ContainerAnimated className="flex flex-col sm:flex-row gap-4">
-                        <Button onClick={() => onNavigate('register')} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 md:py-6 rounded-full text-base md:text-lg shadow-lg hover:shadow-blue-500/25 justify-center">
-                            Join Now
-                        </Button>
-                        <Button onClick={() => onNavigate('about')} variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-50 px-8 py-4 md:py-6 rounded-full text-base md:text-lg justify-center">
-                            Learn More
-                        </Button>
+                       
                     </ContainerAnimated>
                 </ContainerStagger>
 

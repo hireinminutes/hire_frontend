@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
-  Briefcase, Calendar, MapPin, Search, Filter,
-  CheckCircle, XCircle, Clock, ChevronRight, FileText, ArrowRight,
-  MoreHorizontal, Building2
+  Briefcase, MapPin, Search,
+  CheckCircle, XCircle, Clock, ArrowRight
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { getApiUrl } from '../../config/api';
@@ -13,6 +12,7 @@ import { getAuthHeaders } from '../../contexts/AuthContext';
 import { JobSeekerPageProps, Application } from './types';
 
 export function JobSeekerApplications({ onNavigate }: JobSeekerPageProps) {
+  const { } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);

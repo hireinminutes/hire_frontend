@@ -22,109 +22,6 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
   // Subscription state
   const [subscribingTo, setSubscribingTo] = useState<string | null>(null);
 
-  // Razorpay script handler
-  const handleSubscribe = async (plan: string) => {
-    try {
-      setSubscribingTo(plan);
-
-      const token = localStorage.getItem('token');
-
-      // Determine Amount
-      let amount = 9900; // default starter
-      if (plan === 'premium') amount = 49900;
-      if (plan === 'pro') amount = 99900;
-
-      // Create Order
-      const orderResponse = await fetch(getApiUrl('/api/payment/create-order'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          amount,
-          planType: plan
-        })
-      });
-
-      if (!orderResponse.ok) {
-        const errData = await orderResponse.json();
-        throw new Error(errData.message || 'Failed to create order');
-      }
-
-      const orderData = await orderResponse.json();
-
-      // Configure Razorpay checkout
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: orderData.data.finalAmount,
-        currency: orderData.data.currency,
-        name: 'Hire In Minutes',
-        description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan`,
-        order_id: orderData.data.orderId,
-        handler: async function (response: any) {
-          console.log('Payment successful:', response);
-
-          // Verify Payment
-          const verifyResponse = await fetch(getApiUrl('/api/payment/verify'), {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature
-            })
-          });
-
-          const verifyData = await verifyResponse.json();
-
-          if (verifyData.success) {
-            alert(verifyData.message || 'Subscription successful!');
-            window.location.reload();
-          } else {
-            alert(verifyData.message || 'Payment verification failed');
-          }
-          setSubscribingTo(null);
-        },
-        modal: {
-          ondismiss: function () {
-            console.log('Payment cancelled');
-            setSubscribingTo(null);
-          }
-        },
-        prefill: {
-          name: user?.fullName || '',
-          email: user?.email || ''
-        },
-        theme: {
-          color: '#1e293b'
-        }
-      };
-
-      // Load Razorpay script and open checkout
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.async = true;
-      script.onload = () => {
-        const razorpay = new (window as any).Razorpay(options);
-        razorpay.open();
-      };
-      script.onerror = () => {
-        alert('Failed to load payment gateway');
-        setSubscribingTo(null);
-      };
-      document.body.appendChild(script);
-
-    } catch (error: any) {
-      console.error('Subscription error:', error);
-      alert(error.message || 'Failed to process subscription');
-      setSubscribingTo(null);
-    }
-  };
-
   // Filter states
   const [jobSearchQuery, setJobSearchQuery] = useState('');
   const [jobLocation, setJobLocation] = useState('');
@@ -140,14 +37,6 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
   const [hasMore, setHasMore] = useState(true);
 
 
-  // Debounce search query - Reset page to 1 when filters change
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPage(1); // Reset page
-      fetchJobs(1, true); // Fetch first page, reset list
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [jobSearchQuery, jobLocation, jobCategory, jobType]);
 
   const fetchJobs = async (pageNum = 1, reset = false) => {
     try {
@@ -234,6 +123,15 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
     }
   };
 
+  // Debounce search query - Reset page to 1 when filters change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1); // Reset page
+      fetchJobs(1, true); // Fetch first page, reset list
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [jobSearchQuery, jobLocation, jobCategory, jobType]);
+
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
@@ -292,22 +190,157 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
     setJobType('all');
   };
 
+  // Razorpay script handler
+  const handleSubscribe = async (plan: string) => {
+    try {
+      setSubscribingTo(plan);
+
+      const token = localStorage.getItem('token');
+
+      // Determine Amount with Differential Pricing
+      let amount = 9900; // default starter
+      if (plan === 'premium') amount = 49900;
+      if (plan === 'pro') amount = 99900;
+
+      // Apply Differential Pricing Logic (Matches backend)
+      if (user?.plan === 'starter') {
+        if (plan === 'premium') amount = 39900; // 499 - 100? No, user rule says 399
+        if (plan === 'pro') amount = 89900;    // 999 - 100? No, user rule says 899
+      } else if (user?.plan === 'premium') {
+        if (plan === 'pro') amount = 50000;    // 999 - 499 = 500
+      }
+
+      // Create Order
+      const orderResponse = await fetch(getApiUrl('/api/payment/create-order'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount,
+          planType: plan
+        })
+      });
+
+      if (!orderResponse.ok) {
+        const errData = await orderResponse.json();
+        throw new Error(errData.message || 'Failed to create order');
+      }
+
+      const orderData = await orderResponse.json();
+
+      // Configure Razorpay checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: orderData.data.finalAmount,
+        currency: orderData.data.currency,
+        name: 'Hire In Minutes',
+        description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan ${user?.plan !== 'free' ? 'Upgrade' : ''}`,
+        order_id: orderData.data.orderId,
+        handler: async function (response: any) {
+          console.log('Payment successful:', response);
+
+          // Verify Payment
+          const verifyResponse = await fetch(getApiUrl('/api/payment/verify'), {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+
+          const verifyData = await verifyResponse.json();
+
+          if (verifyData.success) {
+            alert(verifyData.message || 'Subscription successful!');
+            window.location.reload();
+          } else {
+            alert(verifyData.message || 'Payment verification failed');
+          }
+          setSubscribingTo(null);
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Payment cancelled');
+            setSubscribingTo(null);
+          }
+        },
+        prefill: {
+          name: user?.fullName || '',
+          email: user?.email || ''
+        },
+        theme: {
+          color: '#1e293b'
+        }
+      };
+
+      // Load Razorpay script and open checkout
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => {
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+      };
+      script.onerror = () => {
+        alert('Failed to load payment gateway');
+        setSubscribingTo(null);
+      };
+      document.body.appendChild(script);
+
+    } catch (error: any) {
+      console.error('Subscription error:', error);
+      alert(error.message || 'Failed to process subscription');
+      setSubscribingTo(null);
+    }
+  };
+
   // Render Plans Section
   const renderPlans = () => {
-    if (user?.plan && user.plan !== 'free') {
+    // Determine which plans to show as upgrades
+    const currentPlan = user?.plan || 'free';
+
+    // Pricing configuration
+    const planPrices = {
+      starter: 99,
+      premium: 499,
+      pro: 999
+    };
+
+    // Calculate upgrade prices
+    const getUpgradePrice = (targetPlan: string) => {
+      if (currentPlan === 'starter') {
+        if (targetPlan === 'premium') return 399;
+        if (targetPlan === 'pro') return 899;
+      }
+      if (currentPlan === 'premium') {
+        if (targetPlan === 'pro') return 500;
+      }
+      return planPrices[targetPlan as keyof typeof planPrices];
+    };
+
+    const isUpgrade = (targetPlan: string) => {
+      const planLevels = { free: 0, starter: 1, premium: 2, pro: 3 };
+      return planLevels[targetPlan as keyof typeof planLevels] > planLevels[currentPlan as keyof typeof planLevels];
+    };
+
+    // If already on Pro, show active message
+    if (currentPlan === 'pro') {
       return (
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl text-white shadow-xl flex items-center justify-between">
+        <div className="mb-6 p-6 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold mb-0.5">
-              You are on the {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} Plan
-            </h2>
-            <p className="text-blue-100 opacity-90 text-sm">
-              {user.plan === 'starter' ? 'You can apply for unlimited jobs.' :
-                user.plan === 'premium' ? 'You have 1 interview opportunity remaining.' :
-                  'You have 3 interview opportunities remaining.'}
+            <h2 className="text-2xl font-bold mb-1">You are on the Pro Plan 🚀</h2>
+            <p className="text-blue-100 opacity-90 font-medium">
+              You have unlocked all premium features and have 3 interview opportunities remaining.
             </p>
           </div>
-          <div className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-xl font-bold border border-white/20 text-sm">
+          <div className="px-6 py-2 bg-white/20 backdrop-blur-md rounded-2xl font-black border border-white/20 text-sm uppercase tracking-wider">
             Active
           </div>
         </div>
@@ -317,48 +350,71 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
     return (
       <div className="mb-12">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">Choose Your Plan</h2>
-          <p className="text-slate-600 max-w-2xl mx-auto">
-            Upgrade to unlock job applications and interview opportunities. Select the plan that fits your career goals.
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">
+            {currentPlan !== 'free' ? 'Upgrade Your Plan' : 'Choose Your Plan'}
+          </h2>
+          <p className="text-slate-600 max-w-2xl mx-auto font-medium">
+            {currentPlan !== 'free'
+              ? `You are currently on the ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan. Upgrade to unlock even more opportunities.`
+              : 'Upgrade to unlock job applications and interview opportunities. Select the plan that fits your career goals.'}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
-          <PlanCard
-            name="Starter"
-            price={99}
-            features={[
-              "Apply for unlimited jobs",
-              "Profile visibility to recruiters",
-              "No interview support included"
-            ]}
-            onSubscribe={() => handleSubscribe('starter')}
-            isLoading={subscribingTo === 'starter'}
-          />
-          <PlanCard
-            name="Premium"
-            price={499}
-            features={[
-              "Everything in Starter",
-              "1 Guaranteed Interview Opportunity",
-              "Priority application status"
-            ]}
-            recommended={true}
-            onSubscribe={() => handleSubscribe('premium')}
-            isLoading={subscribingTo === 'premium'}
-          />
-          <PlanCard
-            name="Pro"
-            price={999}
-            features={[
-              "Everything in Premium",
-              "3 Guaranteed Interview Opportunities",
-              "Direct Admin Support",
-              "Resume Review"
-            ]}
-            onSubscribe={() => handleSubscribe('pro')}
-            isLoading={subscribingTo === 'pro'}
-          />
+          {/* Starter Plan */}
+          <div className={currentPlan !== 'free' ? 'opacity-50 pointer-events-none' : ''}>
+            <PlanCard
+              name="Starter"
+              price={99}
+              features={[
+                "Apply for unlimited jobs",
+                "Profile visibility to recruiters",
+                "No interview support included"
+              ]}
+              onSubscribe={() => handleSubscribe('starter')}
+              isLoading={subscribingTo === 'starter'}
+            />
+          </div>
+
+          {/* Premium Plan */}
+          <div className={currentPlan === 'premium' ? 'opacity-50 pointer-events-none' : ''}>
+            <PlanCard
+              name="Premium"
+              price={499}
+              features={[
+                "Everything in Starter",
+                "1 Guaranteed Interview Opportunity",
+                "Priority application status"
+              ]}
+              recommended={currentPlan === 'free' || currentPlan === 'starter'}
+              onSubscribe={() => handleSubscribe('premium')}
+              isLoading={subscribingTo === 'premium'}
+              isUpgrade={currentPlan === 'starter'}
+              upgradePrice={getUpgradePrice('premium')}
+              originalPrice={499}
+              paidAmount={currentPlan === 'starter' ? 99 : undefined}
+            />
+          </div>
+
+          {/* Pro Plan */}
+          <div>
+            <PlanCard
+              name="Pro"
+              price={999}
+              features={[
+                "Everything in Premium",
+                "3 Guaranteed Interview Opportunities",
+                "Direct Admin Support",
+                "Resume Review"
+              ]}
+              onSubscribe={() => handleSubscribe('pro')}
+              isLoading={subscribingTo === 'pro'}
+              isUpgrade={currentPlan === 'starter' || currentPlan === 'premium'}
+              upgradePrice={getUpgradePrice('pro')}
+              originalPrice={999}
+              paidAmount={currentPlan === 'starter' ? 99 : currentPlan === 'premium' ? 499 : undefined}
+            />
+          </div>
         </div>
       </div>
     );

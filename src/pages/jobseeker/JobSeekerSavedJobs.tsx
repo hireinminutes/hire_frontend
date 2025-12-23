@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Briefcase, Heart, MapPin, Clock, ChevronRight, X, ArrowRight, Bookmark
+  Heart, MapPin, Bookmark
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -145,6 +145,7 @@ export function JobSeekerSavedJobs({ onNavigate }: JobSeekerPageProps) {
                     {job.title}
                   </h3>
                   <p className="text-sm font-bold text-slate-500">{job.company.name}</p>
+                  <span className="text-emerald-600 font-bold">₹{job.salary_min}</span>
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-auto">

@@ -147,6 +147,7 @@ export interface Company {
 export interface Candidate {
   _id: string;
   verifiedAt: string;
+  plan?: 'free' | 'starter' | 'pro' | 'premium';
   profile: {
     fullName: string;
     skills: string[];

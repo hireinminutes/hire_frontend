@@ -9,6 +9,11 @@ interface PlanCardProps {
     recommended?: boolean;
     onSubscribe: () => void;
     isLoading?: boolean;
+    // Upgrade props
+    isUpgrade?: boolean;
+    upgradePrice?: number;
+    originalPrice?: number;
+    paidAmount?: number;
 }
 
 export const PlanCard: React.FC<PlanCardProps> = ({
@@ -17,7 +22,11 @@ export const PlanCard: React.FC<PlanCardProps> = ({
     features,
     recommended = false,
     onSubscribe,
-    isLoading = false
+    isLoading = false,
+    isUpgrade = false,
+    upgradePrice,
+    originalPrice,
+    paidAmount
 }) => {
     return (
         <div className={`
@@ -35,8 +44,25 @@ export const PlanCard: React.FC<PlanCardProps> = ({
 
             <div className="text-center mb-6">
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{name} Plan</h3>
-                <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl font-bold text-slate-900">₹{price}</span>
+                <div className="flex flex-col items-center justify-center gap-1">
+                    {isUpgrade ? (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <span className="text-slate-400 line-through text-lg">₹{originalPrice}</span>
+                                <span className="text-3xl font-bold text-slate-900">₹{upgradePrice}</span>
+                            </div>
+                            <p className="text-xs font-bold text-blue-600 bg-blue-100/50 px-2 py-0.5 rounded-full mt-1">
+                                Upgrade for ₹{upgradePrice}
+                            </p>
+                            {paidAmount && (
+                                <p className="text-[10px] text-slate-500 font-medium mt-1">
+                                    You already paid ₹{paidAmount}
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <span className="text-3xl font-bold text-slate-900">₹{price}</span>
+                    )}
                 </div>
             </div>
 

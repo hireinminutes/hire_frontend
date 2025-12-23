@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
-  Briefcase, Building2,
-  Rocket, GraduationCap,
+  Briefcase,
+  GraduationCap,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { Testimonials } from '../components/Testimonials';
-import { FeaturesBento } from '../components/FeaturesBento';
 import { AboutSection } from '../components/AboutSection';
 
 interface LandingPageProps {
@@ -15,9 +14,10 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onNavigate }: LandingPageProps) {
-  const { profile } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
+  const [skillCardVisible, setSkillCardVisible] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const skillCardRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -38,7 +38,27 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       if (ref) observer.observe(ref);
     });
 
-    return () => observer.disconnect();
+    // Separate observer for skill card animations
+    const skillCardObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setSkillCardVisible(true);
+            skillCardObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    if (skillCardRef.current) {
+      skillCardObserver.observe(skillCardRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+      skillCardObserver.disconnect();
+    };
   }, []);
 
   const addToRefs = (el: HTMLDivElement | null) => {
@@ -55,6 +75,15 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-slate-50 overflow-hidden font-sans text-slate-900">
 
+      {/* Mobile Floating FAQ Tag */}
+      <button
+        onClick={() => onNavigate('faq')}
+        className="md:hidden fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-black text-white px-1.5 py-4 rounded-l-md shadow-lg hover:shadow-xl transition-all"
+        style={{ writingMode: 'vertical-rl' }}
+      >
+        <span className="text-[10px] font-bold tracking-wider">FAQS</span>
+      </button>
+
       {/* Hero Section */}
       <div className={`relative min-h-screen flex items-center justify-center bg-slate-900 overflow-hidden transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         {/* Background Video */}
@@ -69,10 +98,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             <source src="/KODERSPARK.mp4" type="video/mp4" />
           </video>
           {/* Dark Tint Overlay */}
-          <div className="absolute inset-0 bg-slate-900/60"></div>
+          <div className="absolute inset-0 bg-black/50"></div>
           {/* Gradient Overlay for Fade */}
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/50 to-transparent"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
         </div>
 
         {/* Hero Content */}
@@ -97,140 +126,336 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             <p className="text-xl text-slate-200 mb-10 leading-relaxed max-w-xl drop-shadow-md">
               We transform the hiring process into an elegant, skill-first experience. Elevate your career or company with our verified talent ecosystem.
             </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4 mt-8 w-full sm:w-auto">
-              <Button
-                onClick={() => onNavigate('role-select')}
-                className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-full transition-all hover:scale-105 flex items-center justify-center group"
-              >
-                Get Started
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button
-                onClick={() => onNavigate('about')}
-                className="w-full sm:w-auto px-8 py-3 bg-transparent border border-white/30 text-white hover:bg-white/10 backdrop-blur-sm font-semibold rounded-full transition-all hover:scale-105 flex items-center justify-center"
-              >
-                Learn More
-              </Button>
-            </div>
           </div>
         </div>
       </div>
 
-      <FeaturesBento onNavigate={onNavigate} />
 
-
-      {/* Ecosystem Opportunities */}
-      <section className="min-h-screen flex flex-col justify-center py-16 md:py-32 bg-slate-950 relative overflow-hidden">
-        {/* Background Gradients & Grid */}
+      {/* Skill Passport Section */}
+      <section className="flex flex-col justify-center py-12 md:py-20 bg-slate-950 relative overflow-hidden">
+        {/* Background Gradients & Animated Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f640_1px,transparent_1px),linear-gradient(to_bottom,#3b82f640_1px,transparent_1px)] bg-[size:24px_24px] animate-grid-wave"></div>
         <div className="absolute left-0 top-0 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-blue-500/10 rounded-full blur-[80px] md:blur-[128px]"></div>
         <div className="absolute right-0 bottom-0 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-purple-500/10 rounded-full blur-[80px] md:blur-[128px]"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
 
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-20 gap-6">
-            <div className="max-w-2xl">
+            {/* Left Column - Content */}
+            <div ref={addToRefs} className={`space-y-4 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
               <div className="flex items-center space-x-2 text-blue-400 font-semibold tracking-wider text-sm mb-4 uppercase">
                 <span className="w-8 h-[2px] bg-blue-500"></span>
-                <span>Our Ecosystem</span>
+                <span>For Students</span>
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight">
-                One Platform. <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400">Endless Possibilities.</span>
+
+              <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+                Build Your <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400">Skill Passport</span>
               </h2>
+
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg className="w-3.5 h-3.5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-white mb-1">Build verified Skill Passport</h3>
+                    <p className="text-sm text-slate-400 leading-relaxed">Showcase your skills with verified assessments and certifications that matter to employers.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg className="w-3.5 h-3.5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-white mb-1">Take skill assessments</h3>
+                    <p className="text-sm text-slate-400 leading-relaxed">Complete industry-standard assessments to validate your expertise and stand out.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg className="w-3.5 h-3.5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-white mb-1">Direct internship access</h3>
+                    <p className="text-sm text-slate-400 leading-relaxed">Get matched with internship opportunities based on your verified skills and interests.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-white mb-1">Earn badges & rewards</h3>
+                    <p className="text-sm text-slate-400 leading-relaxed">Unlock achievements and recognition as you complete projects and grow your skills.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 bg-slate-900/50 rounded-xl p-4 border border-white/5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white font-semibold text-xl">50+</span>
+                  <Briefcase className="w-5 h-5 text-blue-400" />
+                </div>
+                <p className="text-slate-400 text-xs">New internships added this week</p>
+              </div>
             </div>
-            <p className="text-slate-400 max-w-md text-base md:text-lg leading-relaxed">
-              connects talent, recruiters, and educational institutions in a unified, skill-centric hiring experience.
-            </p>
+
+            {/* Right Column - ID Card */}
+            <div ref={addToRefs} className={`relative transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
+              <div ref={skillCardRef} className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 md:p-6 rounded-3xl shadow-2xl border border-white/10 backdrop-blur-lg">
+
+                {/* Decorative Glow */}
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl"></div>
+
+                {/* Card Header */}
+                <div className="relative mb-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Verified Skills</div>
+                    <GraduationCap className="w-4 h-4 text-blue-400" />
+                  </div>
+
+                  {/* Profile Section */}
+                  <div className="flex items-start gap-3 mb-3">
+                    {/* Avatar */}
+                    <div className="relative">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden shadow-xl border-2 border-blue-500/30">
+                        <img
+                          src="/akhil-profile.png"
+                          alt="profile alt image"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
+                        <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1">
+                      <h3 className="text-white font-bold text-base mb-1">Karthik</h3>
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 rounded-md border border-blue-500/30 mb-0.5">
+                        <span className="text-[9px] font-bold text-blue-300 uppercase tracking-wide">Dev</span>
+                      </div>
+                      <p className="text-slate-500 text-[10px]">#8926</p>
+                      <p className="text-slate-400 text-[10px] mt-0.5">MIT University</p>
+                    </div>
+
+                    {/* Total Score Badge */}
+                    <div className="ml-auto">
+                      <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-2 text-center shadow-lg">
+                        <div className="text-xl font-black text-white">86%</div>
+                        <div className="text-[8px] text-blue-100 uppercase tracking-wide font-bold">Total Score</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* VERIFIED SKILLS Header */}
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Verified Skills</span>
+                  <div className="w-6 h-6 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <GraduationCap className="w-4 h-4 text-blue-400" />
+                  </div>
+                </div>
+
+                {/* Skills Grid - 2x2 with circular progress */}
+                <div className="grid grid-cols-2 gap-2.5 mb-3">
+                  {/* React Skill */}
+                  <div className="bg-slate-800/30 rounded-lg p-2 border border-white/5 hover:border-blue-500/30 transition-all">
+                    <div className="flex items-center gap-3">
+                      {/* Circular Progress */}
+                      <div className="relative w-10 h-10 flex-shrink-0">
+                        <svg className="transform -rotate-90 w-10 h-10">
+                          <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="none" className="text-slate-700/50" />
+                          <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${2 * Math.PI * 16}`} strokeDashoffset={`${2 * Math.PI * 16 * (1 - 0.96)}`} className={`text-blue-500 transition-all duration-1500 ease-out ${skillCardVisible ? 'animate-ring-96' : 'opacity-0'}`} strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className={`text-[10px] font-bold text-blue-400 transition-opacity duration-500 ${skillCardVisible ? 'opacity-100' : 'opacity-0'}`}>96%</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-semibold text-xs mb-0.5">React</div>
+                        <div className="h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                          <div className={`h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-1500 ease-out ${skillCardVisible ? 'w-[96%]' : 'w-0'}`}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Node.js Skill */}
+                  <div className="bg-slate-800/30 rounded-lg p-2 border border-white/5 hover:border-green-500/30 transition-all">
+                    <div className="flex items-center gap-2">
+                      {/* Circular Progress */}
+                      <div className="relative w-10 h-10 flex-shrink-0">
+                        <svg className="transform -rotate-90 w-10 h-10">
+                          <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="none" className="text-slate-700/50" />
+                          <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${2 * Math.PI * 16}`} strokeDashoffset={`${2 * Math.PI * 16 * (1 - 0.85)}`} className={`text-green-500 transition-all duration-1500 ease-out delay-200 ${skillCardVisible ? 'animate-ring-85' : 'opacity-0'}`} strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className={`text-[10px] font-bold text-green-400 transition-opacity duration-500 delay-200 ${skillCardVisible ? 'opacity-100' : 'opacity-0'}`}>85%</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-semibold text-xs mb-0.5">Node.js</div>
+                        <div className="h-1 bg-slate-700/50 rounded-full overflow-hidden">
+                          <div className={`h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all duration-1500 ease-out delay-200 ${skillCardVisible ? 'w-[85%]' : 'w-0'}`}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AWS Skill */}
+                  <div className="bg-slate-800/30 rounded-lg p-2 border border-white/5 hover:border-orange-500/30 transition-all">
+                    <div className="flex items-center gap-2">
+                      {/* Circular Progress */}
+                      <div className="relative w-10 h-10 flex-shrink-0">
+                        <svg className="transform -rotate-90 w-10 h-10">
+                          <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="none" className="text-slate-700/50" />
+                          <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${2 * Math.PI * 16}`} strokeDashoffset={`${2 * Math.PI * 16 * (1 - 0.75)}`} className={`text-orange-500 transition-all duration-1500 ease-out delay-100 ${skillCardVisible ? 'animate-ring-75' : 'opacity-0'}`} strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className={`text-[10px] font-bold text-orange-400 transition-opacity duration-500 delay-100 ${skillCardVisible ? 'opacity-100' : 'opacity-0'}`}>75%</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-semibold text-xs mb-0.5">AWS</div>
+                        <div className="h-1 bg-slate-700/50 rounded-full overflow-hidden">
+                          <div className={`h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-1500 ease-out delay-100 ${skillCardVisible ? 'w-[75%]' : 'w-0'}`}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Figma Skill */}
+                  <div className="bg-slate-800/30 rounded-lg p-2 border border-white/5 hover:border-pink-500/30 transition-all">
+                    <div className="flex items-center gap-2">
+                      {/* Circular Progress */}
+                      <div className="relative w-10 h-10 flex-shrink-0">
+                        <svg className="transform -rotate-90 w-10 h-10">
+                          <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="none" className="text-slate-700/50" />
+                          <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${2 * Math.PI * 16}`} strokeDashoffset={`${2 * Math.PI * 16 * (1 - 0.86)}`} className={`text-pink-500 transition-all duration-1500 ease-out delay-300 ${skillCardVisible ? 'animate-ring-86' : 'opacity-0'}`} strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className={`text-[10px] font-bold text-pink-400 transition-opacity duration-500 delay-300 ${skillCardVisible ? 'opacity-100' : 'opacity-0'}`}>86%</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-semibold text-xs mb-0.5">Figma</div>
+                        <div className="h-1 bg-slate-700/50 rounded-full overflow-hidden">
+                          <div className={`h-full bg-gradient-to-r from-pink-500 to-pink-400 rounded-full transition-all duration-1500 ease-out delay-300 ${skillCardVisible ? 'w-[86%]' : 'w-0'}`}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats Section - Compact */}
+                <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
+                  <div className="bg-slate-800/30 rounded-lg p-2 border border-white/5 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <Briefcase className="w-3 h-3 text-amber-400" />
+                    </div>
+                    <div className="text-base font-black text-amber-400">10+</div>
+                    <div className="text-[9px] text-slate-400 uppercase tracking-wide font-medium">Projects</div>
+                  </div>
+
+                  <div className="bg-slate-800/30 rounded-lg p-2 border border-white/5 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <svg className="w-3 h-3 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                    <div className="text-base font-black text-purple-400">Top 5%</div>
+                    <div className="text-[9px] text-slate-400 uppercase tracking-wide font-medium">Rank</div>
+                  </div>
+
+                  <div className="bg-slate-800/30 rounded-lg p-2 border border-white/5 text-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <div className="w-3.5 h-3.5 bg-green-500/20 rounded-full flex items-center justify-center">
+                        <svg className="w-2.5 h-2.5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-[9px] text-green-400 uppercase tracking-wide font-bold mt-1">Verified Candidate</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            {/* Internships Card */}
-            <div ref={addToRefs} className="group relative bg-slate-900 border border-white/5 p-6 md:p-8 rounded-[2rem] hover:border-white/10 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-900/20 overflow-hidden flex flex-col">
-              <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-slate-800 rounded-2xl flex items-center justify-center text-blue-400 mb-6 md:mb-8 group-hover:bg-blue-500/10 group-hover:scale-110 transition-all duration-300">
-                  <Rocket size={24} className="md:w-[26px] md:h-[26px]" strokeWidth={1.5} />
+          {/* For Recruiters Card - Inside same section */}
+          <div className="mt-12 md:mt-16">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-lg border border-white/10 hover:border-white/20 hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-start gap-4 mb-5">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center text-purple-400 flex-shrink-0">
+                  <Briefcase className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl md:text-2xl font-semibold text-white mb-3 md:mb-4">Internships</h3>
-                <p className="text-slate-400 leading-relaxed mb-6 md:mb-8 md:min-h-[6rem]">
-                  Launch your career by working directly with founders on real-world projects. Earn stipends and gain verified experience.
-                </p>
-                <div className="pt-6 md:pt-8 border-t border-white/5 flex items-center justify-between mt-auto">
-                  <span className="text-sm font-medium text-slate-500 group-hover:text-blue-400 transition-colors">Start your journey</span>
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/10 flex items-center justify-center text-white group-hover:bg-blue-600 group-hover:border-blue-600 transition-all duration-300 group-hover:rotate-[-45deg]">
-                    <ArrowRight size={14} className="md:w-4 md:h-4" />
+                <div className="flex-1">
+                  <h2 className="text-xl md:text-2xl font-bold text-white mb-2">For Recruiters</h2>
+                  <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
+                    Skip the noise. Hire pre-vetted candidates with verified skills. Reduce your time-to-hire by 60% with our automated screening.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-6 md:gap-10 mt-6">
+                {/* Feature Badges */}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="inline-flex items-center px-3 py-1.5 bg-purple-500/20 text-purple-300 rounded-full text-xs font-semibold border border-purple-500/30">
+                    Verified Candidates
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 bg-purple-500/20 text-purple-300 rounded-full text-xs font-semibold border border-purple-500/30">
+                    Instant Hiring
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 bg-purple-500/20 text-purple-300 rounded-full text-xs font-semibold border border-purple-500/30">
+                    Premium Talent
+                  </span>
+                </div>
+
+                {/* Stats */}
+                <div className="flex items-center gap-4 md:gap-6 ml-auto">
+                  <div className="bg-green-500/20 rounded-xl px-4 py-3 border border-green-500/30">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                      <span className="text-xl md:text-2xl font-black text-green-400">60%</span>
+                    </div>
+                    <p className="text-[10px] text-green-300 font-medium">Faster Hiring</p>
+                  </div>
+
+                  <div className="bg-blue-500/20 rounded-xl px-4 py-3 border border-blue-500/30">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <span className="text-xl md:text-2xl font-black text-blue-400">10k+</span>
+                    </div>
+                    <p className="text-[10px] text-blue-300 font-medium">Active Talent</p>
                   </div>
                 </div>
               </div>
-              <button onClick={() => onNavigate('internships')} className="absolute inset-0 z-20 cursor-pointer text-transparent">View Internships</button>
             </div>
-
-            {/* Recruiters Card */}
-            <div ref={addToRefs} className="group relative bg-slate-900 border border-white/5 p-6 md:p-8 rounded-[2rem] hover:border-white/10 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-900/20 overflow-hidden flex flex-col delay-100">
-              <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-slate-800 rounded-2xl flex items-center justify-center text-purple-400 mb-6 md:mb-8 group-hover:bg-purple-500/10 group-hover:scale-110 transition-all duration-300">
-                  <Building2 size={24} className="md:w-[26px] md:h-[26px]" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-xl md:text-2xl font-semibold text-white mb-3 md:mb-4">Recruiters</h3>
-                <ul className="space-y-2 md:space-y-3 mb-6 md:mb-8 md:min-h-[6rem]">
-                  <li className="flex items-center text-slate-400 text-sm md:text-base">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-3 flex-shrink-0"></span>
-                    Post unlimited jobs
-                  </li>
-                  <li className="flex items-center text-slate-400 text-sm md:text-base">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-3 flex-shrink-0"></span>
-                    Access verified talent pool
-                  </li>
-                  <li className="flex items-center text-slate-400 text-sm md:text-base">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-3 flex-shrink-0"></span>
-                    AI-powered matching
-                  </li>
-                </ul>
-                <div className="pt-6 md:pt-8 border-t border-white/5 flex items-center justify-between mt-auto">
-                  <span className="text-sm font-medium text-slate-500 group-hover:text-purple-400 transition-colors">Hire top talent</span>
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/10 flex items-center justify-center text-white group-hover:bg-purple-600 group-hover:border-purple-600 transition-all duration-300 group-hover:rotate-[-45deg]">
-                    <ArrowRight size={14} className="md:w-4 md:h-4" />
-                  </div>
-                </div>
-              </div>
-              <button onClick={() => onNavigate('role-select')} className="absolute inset-0 z-20 cursor-pointer text-transparent">Post a Job</button>
-            </div>
-
-            {/* Colleges Card */}
-            <div ref={addToRefs} className="group relative bg-slate-900 border border-white/5 p-6 md:p-8 rounded-[2rem] hover:border-white/10 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-900/20 overflow-hidden flex flex-col delay-200">
-              <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-slate-800 rounded-2xl flex items-center justify-center text-indigo-400 mb-6 md:mb-8 group-hover:bg-indigo-500/10 group-hover:scale-110 transition-all duration-300">
-                  <GraduationCap size={24} className="md:w-[26px] md:h-[26px]" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-xl md:text-2xl font-semibold text-white mb-3 md:mb-4">Universities</h3>
-                <p className="text-slate-400 leading-relaxed mb-4 md:mb-6 md:min-h-[3rem]">
-                  Real-time placement analytics and student performance tracking dashboard.
-                </p>
-                <div className="mb-4 bg-slate-800/50 rounded-lg p-3 border border-white/5">
-                  <div className="flex justify-between text-xs text-slate-400 mb-1.5">
-                    <span>Ecosystem Impact</span>
-                    <span className="text-indigo-400">92/100</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
-                    <div className="h-full w-[92%] bg-indigo-500 rounded-full"></div>
-                  </div>
-                </div>
-                <div className="pt-6 md:pt-8 border-t border-white/5 flex items-center justify-between mt-auto">
-                  <span className="text-sm font-medium text-slate-500 group-hover:text-indigo-400 transition-colors">Partner with us</span>
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/10 flex items-center justify-center text-white group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-300 group-hover:rotate-[-45deg]">
-                    <ArrowRight size={14} className="md:w-4 md:h-4" />
-                  </div>
-                </div>
-              </div>
-              <button onClick={() => onNavigate('college')} className="absolute inset-0 z-20 cursor-pointer text-transparent">Partner</button>
-            </div>
-
           </div>
+
         </div>
       </section>
 
@@ -249,6 +474,77 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         .animate-in {
           opacity: 1 !important;
           transform: translateY(0) translateX(0) scale(1) !important;
+        }
+
+        @keyframes ring-96 {
+          from {
+            stroke-dashoffset: ${2 * Math.PI * 16};
+          }
+          to {
+            stroke-dashoffset: ${2 * Math.PI * 16 * (1 - 0.96)};
+          }
+        }
+
+        @keyframes ring-85 {
+          from {
+            stroke-dashoffset: ${2 * Math.PI * 16};
+          }
+          to {
+            stroke-dashoffset: ${2 * Math.PI * 16 * (1 - 0.85)};
+          }
+        }
+
+        @keyframes ring-75 {
+          from {
+            stroke-dashoffset: ${2 * Math.PI * 16};
+          }
+          to {
+            stroke-dashoffset: ${2 * Math.PI * 16 * (1 - 0.75)};
+          }
+        }
+
+        @keyframes ring-86 {
+          from {
+            stroke-dashoffset: ${2 * Math.PI * 16};
+          }
+          to {
+            stroke-dashoffset: ${2 * Math.PI * 16 * (1 - 0.86)};
+          }
+        }
+
+        .animate-ring-96 {
+          animation: ring-96 1.5s ease-out forwards;
+        }
+
+        .animate-ring-85 {
+          animation: ring-85 1.5s ease-out forwards;
+        }
+
+        .animate-ring-75 {
+          animation: ring-75 1.5s ease-out forwards;
+        }
+
+        .animate-ring-86 {
+          animation: ring-86 1.5s ease-out forwards;
+        }
+
+        @keyframes grid-wave {
+          0% {
+            mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.8) 75%, transparent 100%);
+            mask-size: 100% 200%;
+            mask-position: 0 -100%;
+          }
+          100% {
+            mask-position: 0 200%;
+          }
+        }
+
+        .animate-grid-wave {
+          mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.8) 75%, transparent 100%);
+          mask-size: 100% 200%;
+          -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 25%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.8) 75%, transparent 100%);
+          -webkit-mask-size: 100% 200%;
+          animation: grid-wave 12s linear infinite;
         }
       `}</style>
 

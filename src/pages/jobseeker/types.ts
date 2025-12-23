@@ -19,6 +19,7 @@ export interface Application {
   id: string;
   job: Job;
   status: string;
+  isInterviewRequested?: boolean;
   created_at: string;
   last_updated: string;
 }

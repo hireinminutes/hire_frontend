@@ -248,7 +248,7 @@ export function SignUpForm({ role, onNavigate, onToggleMode, successMessage }: S
                         Full Name
                     </label>
                     <div className="relative group">
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 transition-colors">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors">
                             <User className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                         </div>
                         <input
@@ -267,7 +267,7 @@ export function SignUpForm({ role, onNavigate, onToggleMode, successMessage }: S
                         Email Address
                     </label>
                     <div className="relative group">
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 transition-colors">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors">
                             <Mail className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                         </div>
                         <input
@@ -286,7 +286,7 @@ export function SignUpForm({ role, onNavigate, onToggleMode, successMessage }: S
                         Password
                     </label>
                     <div className="relative group">
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 transition-colors">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors">
                             <Lock className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                         </div>
                         <input
@@ -316,7 +316,7 @@ export function SignUpForm({ role, onNavigate, onToggleMode, successMessage }: S
                         Confirm Password
                     </label>
                     <div className="relative group">
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 transition-colors">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors">
                             <Lock className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                         </div>
                         <input

@@ -138,6 +138,11 @@ export const authApi = {
   }) => api.put('/api/auth/profile', { profile: applicationData }),
 };
 
+export const recruiterApi = {
+  getCompanyDetails: () => api.get<unknown>('/api/recruiter/company'),
+  updateCompanyDetails: (data: unknown) => api.put<unknown>('/api/recruiter/company', data),
+};
+
 // Jobs API
 export const jobsApi = {
   getAll: (params?: Record<string, string>) => {
@@ -198,7 +203,7 @@ export const adminApi = {
 
   verifyCandidate: (id: string) => api.put<unknown>(`/api/admin/candidates/${id}/verify`),
 
-  deleteUser: (id: string, _userType: string) =>
+  deleteUser: (id: string) =>
     api.delete<void>(`/api/admin/users/${id}`),
 
   getAlerts: () => api.get<unknown[]>('/api/admin/alerts'),

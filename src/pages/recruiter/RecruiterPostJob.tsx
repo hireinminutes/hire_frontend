@@ -13,6 +13,8 @@ const getAuthHeaders = (): Record<string, string> => {
 interface RecruiterPostJobProps extends RecruiterPageProps {
   onJobPosted: () => void;
   onCancel: () => void;
+  jobId?: string;
+  isEditing?: boolean;
 }
 
 const initialJobForm: JobFormData = {
@@ -37,15 +39,72 @@ const initialJobForm: JobFormData = {
   benefits: ['']
 };
 
-export function RecruiterPostJob({ onJobPosted, onCancel }: RecruiterPostJobProps) {
+export function RecruiterPostJob({ onJobPosted, onCancel, jobId, isEditing = false }: RecruiterPostJobProps) {
   const { profile: userProfile } = useAuth(); // renamed to avoid conflict
   const [currentStep, setCurrentStep] = useState(1);
   const [jobForm, setJobForm] = useState<JobFormData>(initialJobForm);
   const [loading, setLoading] = useState(false);
 
-  // Pre-fill form from recruiter profile
+  // Fetch job details for editing
   useEffect(() => {
-    if (userProfile) {
+    if (isEditing && jobId) {
+      const fetchJobDetails = async () => {
+        try {
+          setLoading(true);
+          const headers = getAuthHeaders();
+          const API_BASE_URL = import.meta.env.VITE_API_URL;
+          // Use generic get endpoint, assuming it returns full details
+          const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
+            headers
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            const job = result.data;
+            if (job) {
+              setJobForm({
+                jobTitle: job.jobDetails?.basicInfo?.jobTitle || '',
+                department: job.jobDetails?.basicInfo?.department || '',
+                numberOfOpenings: job.jobDetails?.basicInfo?.numberOfOpenings || 1,
+                employmentType: job.jobDetails?.basicInfo?.employmentType || 'full-time',
+                workMode: job.jobDetails?.basicInfo?.workMode || 'onsite',
+                jobLevel: job.jobDetails?.basicInfo?.jobLevel || 'fresher',
+
+                city: job.jobDetails?.location?.city || '',
+                state: job.jobDetails?.location?.state || '',
+                country: job.jobDetails?.location?.country || '',
+                officeAddress: job.jobDetails?.location?.officeAddress || '',
+
+                salary: job.jobDetails?.compensation?.salary?.toString() || '',
+                salaryType: job.jobDetails?.compensation?.salaryType || 'annual',
+
+                roleSummary: job.jobDetails?.description?.roleSummary || '',
+                responsibilities: job.jobDetails?.description?.responsibilities?.length ? job.jobDetails.description.responsibilities : [''],
+                requiredSkills: job.jobDetails?.description?.requiredSkills?.length ? job.jobDetails.description.requiredSkills : [''],
+
+                minimumEducation: job.jobDetails?.qualifications?.minimumEducation || 'bachelors',
+                preferredEducation: job.jobDetails?.qualifications?.preferredEducation || '',
+                yearsOfExperience: job.jobDetails?.qualifications?.yearsOfExperience || 0,
+
+                benefits: job.benefits?.length ? job.benefits : ['']
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching job details:', error);
+          alert('Failed to load job details.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchJobDetails();
+    }
+  }, [isEditing, jobId]);
+
+  // Pre-fill form from recruiter profile (ONLY for new jobs)
+  useEffect(() => {
+    if (userProfile && !isEditing) {
       // safe cast to access potentially untyped properties that come from backend
       const profileAny = userProfile.profile as any;
       const onboardingAddress = userProfile.recruiterOnboardingDetails?.company?.address;
@@ -86,7 +145,7 @@ export function RecruiterPostJob({ onJobPosted, onCancel }: RecruiterPostJobProp
         }));
       }
     }
-  }, [userProfile]);
+  }, [userProfile, isEditing]);
 
   const nextStep = () => {
     if (currentStep < 6) {
@@ -163,27 +222,42 @@ export function RecruiterPostJob({ onJobPosted, onCancel }: RecruiterPostJobProp
 
       const headers = getAuthHeaders();
       const API_BASE_URL = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
-        method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(jobData)
-      });
+
+      let response;
+      if (isEditing && jobId) {
+        response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
+          method: 'PUT',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(jobData)
+        });
+      } else {
+        response = await fetch(`${API_BASE_URL}/api/jobs`, {
+          method: 'POST',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(jobData)
+        });
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to create job: ${response.status} ${errorText}`);
+        throw new Error(`Failed to ${isEditing ? 'update' : 'create'} job: ${response.status} ${errorText}`);
       }
 
-      alert('Job posted successfully!');
-      setJobForm(initialJobForm);
-      setCurrentStep(1);
+      alert(`Job ${isEditing ? 'updated' : 'posted'} successfully!`);
+      if (!isEditing) {
+        setJobForm(initialJobForm);
+        setCurrentStep(1);
+      }
       onJobPosted();
     } catch (error) {
-      console.error('Error posting job:', error);
-      alert('Failed to post job. Please try again.');
+      console.error(`Error ${isEditing ? 'updating' : 'posting'} job:`, error);
+      alert(`Failed to ${isEditing ? 'update' : 'post'} job. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -207,10 +281,10 @@ export function RecruiterPostJob({ onJobPosted, onCancel }: RecruiterPostJobProp
 
         <div className="relative z-10 text-center md:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs sm:text-sm font-bold uppercase tracking-wider mb-3 sm:mb-4 text-blue-200">
-            <UploadCloud className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Create Job Posting
+            <UploadCloud className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {isEditing ? 'Update Job Posting' : 'Create Job Posting'}
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-2">Post a New Job</h1>
-          <p className="text-base sm:text-lg text-slate-300 font-medium">Create a compelling job post to attract the best talent.</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-2">{isEditing ? 'Edit Job' : 'Post a New Job'}</h1>
+          <p className="text-base sm:text-lg text-slate-300 font-medium">{isEditing ? 'Update details for this position.' : 'Create a compelling job post to attract the best talent.'}</p>
         </div>
       </div>
 
@@ -435,7 +509,7 @@ export function RecruiterPostJob({ onJobPosted, onCancel }: RecruiterPostJobProp
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">Salary <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
                     <input
                       type="number"
                       min="0"

@@ -133,7 +133,7 @@ export function JobSeekerLayout({ children, onNavigate, activeSection }: JobSeek
             </div>
             {!isCollapsed && (
               <div className="animate-fade-in">
-                <h1 className="font-bold text-lg text-white leading-none">HireMe</h1>
+                <h1 className="font-bold text-lg text-white leading-none">Hire In Minutes</h1>
                 <p className="text-xs text-slate-400 font-medium mt-1">Seeker Portal</p>
               </div>
             )}
@@ -249,7 +249,7 @@ export function JobSeekerLayout({ children, onNavigate, activeSection }: JobSeek
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-blue-500/20">
               <Briefcase className="w-5 h-5" />
             </div>
-            <h1 className="font-bold text-lg text-slate-900 tracking-tight">HireMe</h1>
+            <h1 className="font-bold text-lg text-slate-900 tracking-tight">Hire In Minutes</h1>
           </div>
 
           <div className="flex items-center gap-3">

@@ -2,10 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   MapPin, Briefcase, ArrowLeft, Edit, X,
   CheckCircle, Shield, Building2, Share2, Clock, ArrowUpRight,
-  User, FileText, Heart, PlusCircle, Users
+  User, FileText, Heart, PlusCircle, Users, Crown
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { UpgradeModal } from '../components/ui/UpgradeModal';
+import { useToast } from '../contexts/ToastContext';
 import { Textarea } from '../components/ui/Textarea';
 import { Select } from '../components/ui/Select';
 import { getAuthHeaders, useAuth } from '../contexts/AuthContext';
@@ -58,6 +60,8 @@ interface Job {
         description: string;
         website?: string;
         logo?: string;
+        industry?: string;
+        size?: string;
       };
     };
     recruiterOnboardingDetails?: {
@@ -66,6 +70,8 @@ interface Job {
         description?: string;
         website?: string;
         logo?: string;
+        industry?: string;
+        size?: string;
       };
     };
   };
@@ -73,11 +79,14 @@ interface Job {
 
 interface JobDetailsPageProps {
   jobId: string;
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer' | 'admin', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup') => void;
 }
 
 export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
   const { profile } = useAuth();
+  const { toast } = useToast();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +101,9 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
   const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
   const [applicationForm, setApplicationForm] = useState({
     coverLetter: '',
-    availability: ''
+    availability: '',
+    portfolioLink: '',
+    resumeLink: ''
   });
 
   // Check if user has already applied
@@ -179,6 +190,13 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
     }
   }, [jobId, profile, checkApplicationStatus]);
 
+  // Auto-show upgrade modal for free users
+  useEffect(() => {
+    if (profile?.role === 'job_seeker' && (profile as any)?.plan === 'free') {
+      setShowUpgradeModal(true);
+    }
+  }, [profile]);
+
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -245,23 +263,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
     });
   };
 
-  const updateLocation = (field: string, value: unknown) => {
-    setEditedJob(prev => {
-      const currentDetails = prev.jobDetails || {} as any;
-      const currentLocation = currentDetails.location || {};
 
-      return {
-        ...prev,
-        jobDetails: {
-          ...currentDetails,
-          location: {
-            ...currentLocation,
-            [field]: value
-          }
-        }
-      } as Partial<Job>;
-    });
-  };
 
   const updateDescription = (field: string, value: unknown) => {
     setEditedJob(prev => {
@@ -302,12 +304,18 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
   const handleApplyNow = async () => {
     // Check if user is verified
     if (!profile?.isVerified) {
-      alert('You need to be verified to apply for jobs. Please complete the verification process first.');
+      toast.error('You need to be verified to apply for jobs. Please complete the verification process first.');
       return;
     }
 
     if (!applicationForm.coverLetter.trim()) {
-      alert('Please provide a cover letter');
+      toast.error('Please provide a cover letter');
+      return;
+    }
+
+    // Check for plan
+    if ((profile as any)?.plan === 'free') {
+      setShowUpgradeModal(true);
       return;
     }
 
@@ -320,7 +328,9 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
         body: JSON.stringify({
           jobId: jobId,
           coverLetter: applicationForm.coverLetter,
-          availability: applicationForm.availability
+          availability: applicationForm.availability,
+          portfolioLink: applicationForm.portfolioLink,
+          resumeLink: applicationForm.resumeLink
         })
       });
 
@@ -507,10 +517,29 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
         <div className="grid lg:grid-cols-3 gap-8">
 
           {/* LEFT COLUMN - MAIN CONTENT */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-8 relative">
+
+            {/* Upgrade Overlay for Free Users */}
+            {profile?.role === 'job_seeker' && (profile as any)?.plan === 'free' && (
+              <div className="absolute inset-0 z-50 backdrop-blur-[6px] bg-white/30 flex flex-col items-center justify-center rounded-[24px] border border-slate-200">
+                <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md text-center border border-slate-100">
+                  <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600">
+                    <Crown className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-900 mb-2">Upgrade to View Details</h3>
+                  <p className="text-slate-500 mb-6">Unlock full job descriptions, salary details, and application access with our premium plans.</p>
+                  <Button
+                    onClick={() => onNavigate('job-seeker-dashboard', undefined, undefined, undefined, undefined, undefined, 'browse')}
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold h-12 text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                  >
+                    View Plans & Upgrade
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* 1. Job Description Card */}
-            <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100">
+            <div className={`bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 ${(profile as any)?.plan === 'free' ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
               <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-blue-500" />
                 About the Role
@@ -552,7 +581,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
             </div>
 
             {/* 2. Skills & Requirements Card */}
-            <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100">
+            <div className={`bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 ${(profile as any)?.plan === 'free' ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
               <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-emerald-500" />
                 Skills & Requirements
@@ -612,7 +641,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
 
             {/* 3. Benefits Card (Conditional) */}
             {job.benefits && job.benefits.length > 0 && (
-              <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100">
+              <div className={`bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 ${(profile as any)?.plan === 'free' ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
                 <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                   <Shield className="w-5 h-5 text-purple-500" />
                   Perks & Benefits
@@ -702,6 +731,22 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
                       </Button>
                     )}
 
+                    {/* Upgrade Prompt for Free Users */}
+                    {profile?.role === 'job_seeker' && (profile as any)?.plan === 'free' && (
+                      <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                        <p className="text-xs text-amber-800 font-medium text-center mb-2">
+                          Upgrade to Apply for Jobs
+                        </p>
+                        <Button
+                          onClick={() => onNavigate('job-seeker-dashboard')} // Or 'plans' if available
+                          variant="outline"
+                          className="w-full h-8 text-xs border-amber-200 text-amber-700 hover:bg-amber-100"
+                        >
+                          View Plans
+                        </Button>
+                      </div>
+                    )}
+
                     <button
                       onClick={handleShare}
                       className="w-full py-3 text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2"
@@ -741,7 +786,9 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
                   </div>
                   <div>
                     <p className="font-bold text-slate-900">{job.postedBy?.profile?.company?.name || job.postedBy?.recruiterOnboardingDetails?.company?.name || 'Confidential Company'}</p>
-                    <p className="text-xs text-slate-500">Technology • 50-200 Employees</p>
+                    <p className="text-xs text-slate-500">
+                      {job.postedBy?.profile?.company?.industry || job.postedBy?.recruiterOnboardingDetails?.company?.industry || 'Technology'} • {job.postedBy?.profile?.company?.size || job.postedBy?.recruiterOnboardingDetails?.company?.size || 'Size not specified'} Employees
+                    </p>
                   </div>
                 </div>
                 <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-3">
@@ -898,6 +945,36 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
                 </Select>
               </div>
 
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Resume Link <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={applicationForm.resumeLink}
+                    onChange={(e) => setApplicationForm({ ...applicationForm, resumeLink: e.target.value })}
+                    placeholder="https://drive.google.com/..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-slate-400 focus:ring-0 text-sm"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1 font-medium">Link to your PDF resume (Google Drive, Dropbox, etc.)</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Portfolio Link <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={applicationForm.portfolioLink}
+                    onChange={(e) => setApplicationForm({ ...applicationForm, portfolioLink: e.target.value })}
+                    placeholder="https://yourportfolio.com"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-slate-400 focus:ring-0 text-sm"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1 font-medium">Link to your portfolio, GitHub, or LinkedIn.</p>
+                </div>
+              </div>
+
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
                 <Shield className="w-5 h-5 text-blue-600 flex-shrink-0" />
                 <p className="text-sm text-blue-800 leading-relaxed font-medium">
@@ -916,7 +993,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
                 </Button>
                 <Button
                   onClick={handleApplyNow}
-                  disabled={applying || !applicationForm.coverLetter.trim()}
+                  disabled={applying || !applicationForm.coverLetter.trim() || !applicationForm.resumeLink.trim()}
                   className="flex-1 py-3 rounded-xl font-bold bg-slate-900 hover:bg-black text-white"
                 >
                   {applying ? 'Submitting...' : 'Submit Application'}
@@ -926,6 +1003,14 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
           </Card>
         </div>
       )}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        onUpgrade={() => {
+          setShowUpgradeModal(false);
+          onNavigate('job-seeker-dashboard', undefined, undefined, undefined, undefined, undefined, 'browse');
+        }}
+      />
     </div>
   );
 }

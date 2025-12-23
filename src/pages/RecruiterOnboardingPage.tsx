@@ -8,11 +8,11 @@ import {
   Building2, Briefcase, Globe,
   CheckCircle, ArrowRight, Phone, Linkedin, Twitter,
   Instagram, Facebook, FileText, Shield, Clock, Sparkles,
-  Award, Target, X, Camera, ImageIcon
+  Award, Target, X, Camera, ImageIcon, UserCheck
 } from 'lucide-react';
 
 interface RecruiterOnboardingPageProps {
-  onComplete: () => void;
+  onComplete: (destination?: string) => void;
 }
 
 export function RecruiterOnboardingPage({ onComplete }: RecruiterOnboardingPageProps) {
@@ -24,10 +24,7 @@ export function RecruiterOnboardingPage({ onComplete }: RecruiterOnboardingPageP
 
   // Personal legitimacy
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [phoneVerified, setPhoneVerified] = useState(false);
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+
 
   // Company authenticity
   const [companyName, setCompanyName] = useState('');
@@ -110,27 +107,7 @@ export function RecruiterOnboardingPage({ onComplete }: RecruiterOnboardingPageP
     '1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'
   ];
 
-  const handleSendOtp = () => {
-    if (!phoneNumber.trim()) {
-      alert('Please enter your phone number first');
-      return;
-    }
-    // For testing purposes, just show OTP input
-    setShowOtpInput(true);
-    setOtpSent(true);
-    alert('OTP sent to your phone (Testing: use 123456)');
-  };
 
-  const handleVerifyOtp = () => {
-    if (otp === '123456') {
-      setPhoneVerified(true);
-      setShowOtpInput(false);
-      alert('Phone number verified successfully!');
-    } else {
-      alert('Invalid OTP. Please try again.');
-      setOtp('');
-    }
-  };
 
   const handleCompanyLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -196,10 +173,6 @@ export function RecruiterOnboardingPage({ onComplete }: RecruiterOnboardingPageP
         alert('Please enter your phone number');
         return;
       }
-      if (!phoneVerified) {
-        alert('Please verify your phone number first');
-        return;
-      }
       nextStep();
       return;
     }
@@ -235,7 +208,7 @@ export function RecruiterOnboardingPage({ onComplete }: RecruiterOnboardingPageP
         personalInfo: {
           fullName: '', // Will be populated from user profile
           phone: phoneNumber.trim(),
-          phoneVerified: phoneVerified
+          phoneVerified: false
         },
         companyInfo: {
           name: companyName.trim(),
@@ -290,123 +263,42 @@ export function RecruiterOnboardingPage({ onComplete }: RecruiterOnboardingPageP
     }
   };
 
+  // Success Message with Auto-redirect
   if (showSuccess) {
+    setTimeout(() => {
+      onComplete('landing');
+    }, 5000);
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-6">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 -left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        </div>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-600"></div>
 
-        <div className="relative max-w-2xl w-full">
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-12 text-center">
-            {/* Success Animation */}
-            <div className="relative mb-6 md:mb-8">
-              <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full mx-auto flex items-center justify-center animate-bounce shadow-xl">
-                <CheckCircle className="h-12 w-12 md:h-16 md:w-16 text-white" />
-              </div>
-              <div className="absolute inset-0 w-24 h-24 md:w-32 md:h-32 bg-green-400/20 rounded-full mx-auto animate-ping"></div>
-            </div>
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
 
-            {/* Success Message */}
-            <div className="mb-6 md:mb-8">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-amber-500" />
-                <h1 className="text-2xl md:text-4xl font-bold text-slate-900">Application Submitted!</h1>
-                <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-amber-500" />
-              </div>
-              <p className="text-base md:text-xl text-slate-600 mb-4 md:mb-6 px-2">
-                Your recruiter verification application has been submitted for review
-              </p>
-            </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">
+            Application Submitted!
+          </h2>
 
-            {/* Verification Info */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl md:rounded-2xl p-4 md:p-8 mb-6 md:mb-8">
-              <div className="flex items-center justify-center gap-2 md:gap-3 mb-3 md:mb-4">
-                <Shield className="h-6 w-6 md:h-8 md:w-8 text-purple-600" />
-                <h2 className="text-lg md:text-2xl font-bold text-slate-900">Verification in Progress</h2>
-              </div>
-              <p className="text-sm md:text-base text-slate-700 mb-4 md:mb-6 leading-relaxed px-2">
-                Your account is currently under review by our admin team. This process typically takes 24-48 hours.
-                You'll receive an email notification once your account is verified and activated.
-              </p>
+          <p className="text-slate-600 mb-6 leading-relaxed">
+            Thank you for registering. Our team will review your application and reach out to you once your request is approved.
+          </p>
 
-              {/* Status Steps */}
-              <div className="grid grid-cols-3 gap-2 md:gap-4 text-center">
-                <div>
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                    <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-white" />
-                  </div>
-                  <p className="text-xs md:text-sm font-medium text-slate-900">Application<br className="md:hidden" /> Submitted</p>
-                  <p className="text-[10px] md:text-xs text-slate-500">Completed</p>
-                </div>
-                <div>
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-500 rounded-full mx-auto mb-2 flex items-center justify-center animate-pulse">
-                    <Clock className="h-5 w-5 md:h-6 md:w-6 text-white" />
-                  </div>
-                  <p className="text-xs md:text-sm font-medium text-slate-900">Admin<br className="md:hidden" /> Review</p>
-                  <p className="text-[10px] md:text-xs text-slate-500">In Progress</p>
-                </div>
-                <div>
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-slate-200 rounded-full mx-auto mb-2 flex items-center justify-center">
-                    <Award className="h-5 w-5 md:h-6 md:w-6 text-slate-400" />
-                  </div>
-                  <p className="text-xs md:text-sm font-medium text-slate-900">Verification</p>
-                  <p className="text-[10px] md:text-xs text-slate-500">Pending</p>
-                </div>
-              </div>
-            </div>
+          <div className="bg-blue-50 text-blue-800 text-sm py-2 px-4 rounded-lg inline-flex items-center gap-2 mb-2">
+            <Clock className="w-4 h-4" />
+            <span>Redirecting to home in few seconds...</span>
+          </div>
 
-            {/* What's Next */}
-            <div className="bg-slate-50 rounded-xl md:rounded-2xl p-4 md:p-6 mb-6 md:mb-8 text-left">
-              <h3 className="text-base md:text-lg font-bold text-slate-900 mb-3 md:mb-4 flex items-center gap-2">
-                <Target className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
-                What happens next?
-              </h3>
-              <div className="space-y-2 md:space-y-3">
-                <div className="flex items-start gap-2 md:gap-3">
-                  <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-[10px] md:text-xs font-bold text-blue-600">1</span>
-                  </div>
-                  <div>
-                    <p className="text-sm md:text-base font-medium text-slate-900">Admin Review</p>
-                    <p className="text-xs md:text-sm text-slate-600">Our team will review your application and company credentials</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 md:gap-3">
-                  <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-[10px] md:text-xs font-bold text-blue-600">2</span>
-                  </div>
-                  <div>
-                    <p className="text-sm md:text-base font-medium text-slate-900">Email Notification</p>
-                    <p className="text-xs md:text-sm text-slate-600">You'll receive an email when your account is approved</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2 md:gap-3">
-                  <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-[10px] md:text-xs font-bold text-blue-600">3</span>
-                  </div>
-                  <div>
-                    <p className="text-sm md:text-base font-medium text-slate-900">Start Hiring</p>
-                    <p className="text-xs md:text-sm text-slate-600">Access your dashboard and begin posting jobs</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Button */}
+          <div className="mt-4">
             <Button
-              onClick={() => window.location.href = '/'}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 md:py-4 text-base md:text-lg font-semibold shadow-lg"
+              onClick={() => onComplete('landing')}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700"
             >
               Return to Homepage
-              <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
             </Button>
-
-            {/* Support Info */}
-            <p className="text-sm text-slate-500 mt-6">
-              Questions? Contact us at <span className="font-medium text-slate-700">support@jobboard.com</span>
-            </p>
           </div>
         </div>
       </div>
@@ -475,64 +367,18 @@ export function RecruiterOnboardingPage({ onComplete }: RecruiterOnboardingPageP
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                      <Input
-                        type="tel"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        placeholder="+91 98765 43210"
-                        className="pl-10 w-full"
-                        disabled={phoneVerified}
-                      />
-                    </div>
-                    {!phoneVerified ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleSendOtp}
-                        disabled={!phoneNumber.trim() || otpSent}
-                        className="w-full sm:w-auto px-6"
-                      >
-                        {otpSent ? 'OTP Sent' : 'Send OTP'}
-                      </Button>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg w-full sm:w-auto">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        <span className="text-sm text-green-700 font-medium">Verified</span>
-                      </div>
-                    )}
+                  <div className="relative flex-1">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                    <Input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className="pl-10 w-full"
+                    />
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Required for OTP verification</p>
+                  <p className="text-xs text-slate-500 mt-1">Contact number for official communications</p>
                 </div>
-
-                {showOtpInput && !phoneVerified && (
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Enter OTP <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex gap-3">
-                      <Input
-                        type="text"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        placeholder="Enter 6-digit OTP"
-                        maxLength={6}
-                        className="text-center text-lg tracking-widest"
-                      />
-                      <Button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        disabled={otp.length !== 6}
-                        className="px-6 bg-green-600 hover:bg-green-700"
-                      >
-                        Verify
-                      </Button>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">Testing OTP: 123456</p>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -898,7 +744,6 @@ export function RecruiterOnboardingPage({ onComplete }: RecruiterOnboardingPageP
             </div>
           )}
 
-          {/* Navigation Buttons */}
           {/* Navigation Buttons */}
           <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-3 mt-8 pt-6 border-t border-slate-200">
             <Button

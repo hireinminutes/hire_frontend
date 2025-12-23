@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/Button';
 import {
   ArrowLeft, Mail, Lock, Shield, CheckCircle,
-  Key, Eye, EyeOff, Clock, AlertCircle
+  Key, Eye, EyeOff, AlertCircle, Briefcase, User
 } from 'lucide-react';
 
 interface ForgotPasswordPageProps {
-  role: 'job_seeker' | 'employer';
+  role?: 'job_seeker' | 'employer';
   onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string) => void;
 }
 
@@ -14,6 +14,7 @@ type Step = 'email' | 'otp' | 'reset';
 
 export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps) {
   const [currentStep, setCurrentStep] = useState<Step>('email');
+  const [selectedRole, setSelectedRole] = useState<'job_seeker' | 'employer'>(role || 'job_seeker');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -29,6 +30,13 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
     setIsVisible(true);
   }, []);
 
+  // Update selected role if prop changes
+  useEffect(() => {
+    if (role) {
+      setSelectedRole(role);
+    }
+  }, [role]);
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -40,7 +48,7 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, role }),
+        body: JSON.stringify({ email, role: selectedRole }),
       });
 
       const data = await response.json();
@@ -49,7 +57,7 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
         throw new Error(data.message || 'Failed to send reset email');
       }
 
-      setSuccess('OTP sent to your email! (Use 123456 for testing)');
+      setSuccess(data.message || 'OTP sent to your email!');
       setCurrentStep('otp');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -62,12 +70,15 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
     e.preventDefault();
     setError('');
 
-    if (otp !== '123456') {
-      setError('Invalid OTP. Please try again.');
+    // Client-side length check
+    if (otp.length !== 6) {
+      setError('OTP must be 6 digits.');
       return;
     }
 
-    setSuccess('OTP verified successfully!');
+    // In a real flow, checking OTP usually happens at the end or via a specific verify endpoint.
+    // For now, we proceed to the reset step where the OTP will be validated by the backend.
+    setSuccess('');
     setCurrentStep('reset');
   };
 
@@ -93,7 +104,7 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, otp, newPassword, role }),
+        body: JSON.stringify({ email, otp, newPassword, role: selectedRole }),
       });
 
       const data = await response.json();
@@ -102,9 +113,9 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
         throw new Error(data.message || 'Failed to reset password');
       }
 
-      setSuccess('Password reset successfully! You can now sign in with your new password.');
+      setSuccess('Password reset successfully! You can now sign in.');
       setTimeout(() => {
-        onNavigate('auth', undefined, role, undefined, 'Password reset successfully! You can now sign in with your new password.');
+        onNavigate('auth', undefined, selectedRole, undefined, 'Password reset successfully! You can now sign in.');
       }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -140,7 +151,7 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
       case 'email':
         return 'Enter your registered email address to receive a password reset OTP';
       case 'otp':
-        return 'Enter the 6-digit OTP sent to your email (use 123456 for testing)';
+        return 'Enter the 6-digit OTP sent to your email';
       case 'reset':
         return 'Create a new secure password for your account';
     }
@@ -159,7 +170,7 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
 
       <div className="relative max-w-md mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6">
         <button
-          onClick={() => onNavigate('auth')}
+          onClick={() => onNavigate('auth', undefined, selectedRole)}
           className="flex items-center text-sm text-slate-600 hover:text-slate-900 mb-6 transition-colors group"
         >
           <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
@@ -168,18 +179,45 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
 
         <div className={`bg-white/80 backdrop-blur-sm border-2 border-slate-100 rounded-3xl p-6 shadow-xl transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 
+          {/* Role Toggle */}
+          {currentStep === 'email' && (
+            <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
+              <button
+                type="button"
+                onClick={() => setSelectedRole('job_seeker')}
+                className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-lg transition-all ${selectedRole === 'job_seeker'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+                  }`}
+              >
+                <User className="w-4 h-4 mr-2" />
+                Job Seeker
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole('employer')}
+                className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-lg transition-all ${selectedRole === 'employer'
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+                  }`}
+              >
+                <Briefcase className="w-4 h-4 mr-2" />
+                Recruiter
+              </button>
+            </div>
+          )}
+
           {/* Step Indicator */}
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center space-x-4">
               {(['email', 'otp', 'reset'] as Step[]).map((step, index) => (
                 <div key={step} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    currentStep === step
-                      ? 'bg-blue-500 text-white'
-                      : index < (['email', 'otp', 'reset'] as Step[]).indexOf(currentStep)
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === step
+                    ? selectedRole === 'employer' ? 'bg-purple-600 text-white' : 'bg-blue-500 text-white'
+                    : index < (['email', 'otp', 'reset'] as Step[]).indexOf(currentStep)
                       ? 'bg-green-500 text-white'
                       : 'bg-slate-200 text-slate-500'
-                  }`}>
+                    }`}>
                     {index < (['email', 'otp', 'reset'] as Step[]).indexOf(currentStep) ? (
                       <CheckCircle className="h-4 w-4" />
                     ) : (
@@ -187,11 +225,10 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
                     )}
                   </div>
                   {index < 2 && (
-                    <div className={`w-8 h-0.5 mx-2 ${
-                      index < (['email', 'otp', 'reset'] as Step[]).indexOf(currentStep)
-                        ? 'bg-green-500'
-                        : 'bg-slate-200'
-                    }`} />
+                    <div className={`w-8 h-0.5 mx-2 ${index < (['email', 'otp', 'reset'] as Step[]).indexOf(currentStep)
+                      ? 'bg-green-500'
+                      : 'bg-slate-200'
+                      }`} />
                   )}
                 </div>
               ))}
@@ -200,7 +237,10 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
 
           {/* Header */}
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 mx-auto mb-3 flex items-center justify-center shadow-lg">
+            <div className={`w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg ${selectedRole === 'employer'
+              ? 'bg-gradient-to-br from-purple-500 to-indigo-500'
+              : 'bg-gradient-to-br from-blue-500 to-cyan-500'
+              }`}>
               <StepIcon className="h-6 w-6 text-white" />
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-2">
@@ -227,7 +267,10 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all placeholder:text-slate-400"
+                    className={`w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 outline-none transition-all placeholder:text-slate-400 ${selectedRole === 'employer'
+                      ? 'focus:border-purple-500 focus:ring-purple-200'
+                      : 'focus:border-blue-500 focus:ring-blue-200'
+                      }`}
                     required
                   />
                 </div>
@@ -236,7 +279,10 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                className={`w-full py-3 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl ${selectedRole === 'employer'
+                  ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600'
+                  : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600'
+                  }`}
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
@@ -266,20 +312,26 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
                     onChange={(e) => setOtp(e.target.value)}
                     placeholder="123456"
                     maxLength={6}
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all placeholder:text-slate-400 text-center text-lg font-mono tracking-widest"
+                    className={`w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 outline-none transition-all placeholder:text-slate-400 text-center text-lg font-mono tracking-widest ${selectedRole === 'employer'
+                      ? 'focus:border-purple-500 focus:ring-purple-200'
+                      : 'focus:border-blue-500 focus:ring-blue-200'
+                      }`}
                     required
                   />
                 </div>
                 <p className="text-xs text-slate-500 mt-2 text-center">
-                  Check your email for the OTP (use 123456 for testing)
+                  Check your email for the 6-digit OTP code
                 </p>
               </div>
 
               <Button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                className={`w-full py-3 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl ${selectedRole === 'employer'
+                  ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600'
+                  : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600'
+                  }`}
               >
-                Verify OTP
+                Continue
               </Button>
             </form>
           )}
@@ -299,7 +351,10 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-12 pr-12 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all placeholder:text-slate-400"
+                    className={`w-full pl-12 pr-12 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 outline-none transition-all placeholder:text-slate-400 ${selectedRole === 'employer'
+                      ? 'focus:border-purple-500 focus:ring-purple-200'
+                      : 'focus:border-blue-500 focus:ring-blue-200'
+                      }`}
                     required
                   />
                   <button
@@ -329,7 +384,10 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-12 pr-12 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all placeholder:text-slate-400"
+                    className={`w-full pl-12 pr-12 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 outline-none transition-all placeholder:text-slate-400 ${selectedRole === 'employer'
+                      ? 'focus:border-purple-500 focus:ring-purple-200'
+                      : 'focus:border-blue-500 focus:ring-blue-200'
+                      }`}
                     required
                   />
                   <button
@@ -349,7 +407,10 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                className={`w-full py-3 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl ${selectedRole === 'employer'
+                  ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600'
+                  : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600'
+                  }`}
               >
                 {loading ? (
                   <div className="flex items-center justify-center">

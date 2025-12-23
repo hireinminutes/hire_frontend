@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Clock } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { Navbar } from './components/ui/Navbar';
 import { Footer } from './components/layout';
 import { FullScreenModalAd } from './components/ads/FullScreenModalAd';
+import { ScrollToTop } from './components/ScrollToTop';
 import { LandingPage } from './pages/LandingPage';
 import { RoleSelectPage } from './pages/RoleSelectPage';
 import { AuthPage } from './pages/AuthPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
-import { AdminRegisterPage } from './pages/AdminRegisterPage';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { JobsPage } from './pages/JobsPage';
 import { JobDetailsPage } from './pages/JobDetailsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { PostJobPage } from './pages/PostJobPage';
@@ -29,10 +29,9 @@ import { CourseDetailsPage } from './pages/CourseDetailsPage';
 import { PublicCandidateProfile } from './pages/PublicCandidateProfile';
 import { TermsPrivacyPage } from './pages/TermsPrivacyPage';
 import { PaymentStatusPage } from './pages/PaymentStatusPage';
-
-
 import { PassportPage } from './pages/jobseeker/PassportPage';
 import { VerifyTwoFactorPage } from './pages/VerifyTwoFactorPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
 // Import separated Job Seeker Dashboard pages
 import {
@@ -87,10 +86,12 @@ const getAuthHeaders = (): Record<string, string> => {
 // RecruiterDashboardRouter component for handling recruiter dashboard sections
 function RecruiterDashboardRouter({
   onNavigate,
-  activeSection
+  activeSection,
+  jobId
 }: {
   onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup') => void;
   activeSection: string;
+  jobId?: string;
 }) {
   const { profile } = useAuth();
   const [myJobs, setMyJobs] = useState<Job[]>([]);
@@ -280,6 +281,15 @@ function RecruiterDashboardRouter({
           onCancel={() => onNavigate('recruiter-dashboard', undefined, undefined, undefined, undefined, undefined, 'overview')}
         />
       )}
+      {activeSection === 'edit-job' && (
+        <RecruiterPostJob
+          onNavigate={onNavigate}
+          onJobPosted={handleJobPosted}
+          onCancel={() => onNavigate('recruiter-dashboard', undefined, undefined, undefined, undefined, undefined, 'jobs')}
+          jobId={jobId}
+          isEditing={true}
+        />
+      )}
     </RecruiterLayout>
   );
 }
@@ -315,7 +325,7 @@ function AppContent() {
           authMode = 'signin';
         }
       } else if (path.startsWith('admin/')) {
-        if (path === 'admin/login' || path === 'admin/register') {
+        if (path === 'admin/login') {
           page = path;
         } else {
           const parts = path.split('/');
@@ -352,14 +362,46 @@ function AppContent() {
         const parts = path.split('/');
         page = 'college';
         dashboardSection = parts[1] || 'overview';
+      } else if (path === '') {
+        // Root path - show landing page
+        page = 'landing';
       } else {
-        // Regular pages
-        page = path;
+        // Only allow specific static pages
+        const validStaticPages = [
+          'landing',
+          'role-select',
+          'forgot-password',
+          'verify-2fa',
+          'recruiter-onboarding',
+          'admin/login',
+          'college/register',
+          'college/login',
+          'faq',
+          'contact',
+          'about',
+          'for-candidates',
+          'for-recruiters',
+          'terms-privacy',
+          'payment-status',
+          'passport',
+          'settings',
+          'post-job',
+          'post-internship',
+          'saved-jobs',
+          'notifications',
+          'applicants'
+        ];
+
+        if (validStaticPages.includes(path)) {
+          page = path;
+        } else {
+          page = 'not-found';
+        }
       }
     }
 
     // Always prefer URL over localStorage for deep links
-    if (page !== 'landing' || path === 'landing') {
+    if (page !== 'landing' || path === '' || path === 'landing') {
       return { page, jobId, courseId, profileSlug, dashboardSection, role, authMode };
     }
 
@@ -402,7 +444,7 @@ function AppContent() {
             authMode = 'signin';
           }
         } else if (path.startsWith('admin/')) {
-          if (path === 'admin/login' || path === 'admin/register') {
+          if (path === 'admin/login') {
             page = path;
           } else {
             const parts = path.split('/');
@@ -433,8 +475,19 @@ function AppContent() {
           page = 'college';
           dashboardSection = parts[1] || 'overview';
         } else {
-          // Regular pages
-          page = path;
+          // Check allowed static pages for popstate as well
+          const validStaticPages = [
+            'landing', 'role-select', 'forgot-password', 'verify-2fa', 'recruiter-onboarding',
+            'admin/login', 'college/register', 'college/login', 'faq', 'contact', 'about',
+            'for-candidates', 'for-recruiters', 'terms-privacy', 'payment-status', 'passport',
+            'settings', 'post-job', 'post-internship', 'saved-jobs', 'notifications', 'applicants'
+          ];
+
+          if (validStaticPages.includes(path)) {
+            page = path;
+          } else {
+            page = 'not-found';
+          }
         }
       }
 
@@ -448,8 +501,8 @@ function AppContent() {
   useEffect(() => {
     if (!loading) {
       if (user && profile) {
-        // Special handling for admin login/register pages
-        if (pageState.page === 'admin/login' || pageState.page === 'admin/register') {
+        // Special handling for admin login page
+        if (pageState.page === 'admin/login') {
           if (profile.role === 'admin') {
             setPageState({ page: 'admin', dashboardSection: 'overview' });
             localStorage.setItem('pageState', JSON.stringify({ page: 'admin', dashboardSection: 'overview' }));
@@ -472,7 +525,9 @@ function AppContent() {
           'post-job',
           'saved-jobs',
           'notifications',
-          'applicants'
+          'notifications',
+          'applicants',
+          'not-found'
         ];
 
         if (allowedPages.includes(pageState.page)) {
@@ -494,26 +549,36 @@ function AppContent() {
         localStorage.setItem('pageState', JSON.stringify({ page: dashboardPage, dashboardSection: initialSection }));
         window.history.pushState({}, '', redirectUrl);
       } else if (!user) {
-        const publicPages = ['landing', 'jobs', 'role-select', 'auth', 'forgot-password', 'faq', 'contact', 'for-candidates', 'for-recruiters', 'job-details', 'admin/login', 'admin/register', 'college', 'college/register', 'college/login'];
+        const publicPages = ['landing', 'role-select', 'auth', 'forgot-password', 'faq', 'contact', 'for-candidates', 'for-recruiters', 'job-details', 'admin/login', 'college', 'college/register', 'college/login', 'not-found'];
         // Allow auth pages (with various parameters)
         if (!publicPages.includes(pageState.page) && pageState.page !== 'auth') {
           // Check if it's a sub-route of a public page or an auth path
           if (!pageState.page.startsWith('auth')) {
             setPageState({ page: 'landing' });
             localStorage.setItem('pageState', JSON.stringify({ page: 'landing' }));
-            window.history.pushState({}, '', '/landing');
+            window.history.pushState({}, '', '/');
           }
         }
       }
     }
   }, [user, profile, loading]);
 
+  // Auto-redirect to /not-found if page is not found
+  useEffect(() => {
+    if (pageState.page === 'not-found' && window.location.pathname !== '/not-found') {
+      window.history.replaceState({}, '', '/not-found');
+    }
+  }, [pageState.page]);
+
   const handleNavigate = (page: string, jobId?: string, role?: 'job_seeker' | 'employer' | 'admin', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup') => {
     const newState = { page, jobId, role, courseId, successMessage, profileSlug, dashboardSection, authMode };
     setPageState(newState);
     localStorage.setItem('pageState', JSON.stringify(newState));
     let url = `/${page}`;
-    if (page === 'auth' && role) {
+    if (page === 'landing') {
+      // Landing page goes to root
+      url = '/';
+    } else if (page === 'auth' && role) {
       // New clean URL structure: /auth/signin/job-seeker
       const mode = authMode || 'signin';
       const roleSlug = role === 'job_seeker' ? 'job-seeker' : 'employer';
@@ -540,24 +605,13 @@ function AppContent() {
 
   return (
     <>
-      {/* Show Navbar on public pages */}
-      {![
-        'auth',
-        'role-select',
-        'forgot-password',
-        'verify-2fa',
-        'recruiter-onboarding',
-        'admin/login',
-        'admin/register',
-        'college/register',
-        'college/login',
-        'job-seeker-dashboard',
-        'recruiter-dashboard',
-        'college',
-        'admin'
-      ].includes(pageState.page) && (
-          <Navbar onNavigate={handleNavigate} currentPage={pageState.page} />
-        )}
+      {/* Scroll to top on navigation */}
+      <ScrollToTop trigger={pageState} />
+
+      {/* Show Navbar on public pages - HIDE if user is logged in */}
+      {!user && (
+        <Navbar onNavigate={handleNavigate} currentPage={pageState.page} />
+      )}
 
       <main>
         {pageState.page === 'landing' && <LandingPage onNavigate={handleNavigate} />}
@@ -586,8 +640,6 @@ function AppContent() {
           <RecruiterOnboardingPage onComplete={() => handleNavigate('landing')} />
         )}
         {pageState.page === 'admin/login' && <AdminLoginPage onNavigate={handleNavigate} />}
-        {pageState.page === 'admin/register' && <AdminRegisterPage onNavigate={handleNavigate} />}
-        {pageState.page === 'jobs' && <JobsPage onNavigate={handleNavigate} />}
         {pageState.page === 'job-details' && pageState.jobId && (
           <JobDetailsPage jobId={pageState.jobId} onNavigate={handleNavigate} />
         )}
@@ -652,6 +704,7 @@ function AppContent() {
               <RecruiterDashboardRouter
                 onNavigate={handleNavigate}
                 activeSection={pageState.dashboardSection || 'overview'}
+                jobId={pageState.jobId}
               />
             ) : (
               <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -750,14 +803,15 @@ function AppContent() {
           <ApplicantsPage onNavigate={handleNavigate} />
         )}
         {pageState.page === 'faq' && <FaqPage onNavigate={handleNavigate} />}
-        {pageState.page === 'faq' && <FaqPage onNavigate={handleNavigate} />}
         {pageState.page === 'contact' && <ContactPage onNavigate={handleNavigate} />}
         {pageState.page === 'about' && <AboutPage onNavigate={handleNavigate} />}
         {pageState.page === 'for-candidates' && <ForCandidatesPage onNavigate={handleNavigate} />}
         {pageState.page === 'for-recruiters' && <ForRecruitersPage onNavigate={handleNavigate} />}
         {pageState.page === 'terms-privacy' && <TermsPrivacyPage onNavigate={handleNavigate} />}
         {pageState.page === 'payment-status' && <PaymentStatusPage onNavigate={handleNavigate} />}
+
         {pageState.page === 'passport' && <PassportPage />}
+        {pageState.page === 'not-found' && <NotFoundPage onNavigate={handleNavigate} />}
 
       </main>
 
@@ -769,7 +823,6 @@ function AppContent() {
         'verify-2fa',
         'recruiter-onboarding',
         'admin/login',
-        'admin/register',
         'college/register',
         'college/login',
         'job-seeker-dashboard',
@@ -790,7 +843,9 @@ export default function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-        <AppContent />
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
       </SocketProvider>
     </AuthProvider>
   );

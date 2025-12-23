@@ -110,6 +110,15 @@ export function ForRecruitersPage({ onNavigate }: ForRecruitersPageProps) {
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden selection:bg-slate-900 selection:text-white">
+
+      {/* Mobile Floating FAQ Tag */}
+      <button
+        onClick={() => onNavigate('faq')}
+        className="md:hidden fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-black text-white px-1.5 py-4 rounded-l-md shadow-lg hover:shadow-xl transition-all"
+        style={{ writingMode: 'vertical-rl' }}
+      >
+        <span className="text-[10px] font-bold tracking-wider">FAQS</span>
+      </button>
       {/* Hero Section */}
       {/* Hero Section */}
       <div className={`relative bg-slate-950 min-h-screen flex flex-col justify-center pt-32 pb-24 overflow-hidden`}>
@@ -148,13 +157,6 @@ export function ForRecruitersPage({ onNavigate }: ForRecruitersPageProps) {
                     Start Hiring
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => onNavigate('role-select')}
-                  className="h-14 px-8 border-white/10 text-white hover:bg-white/5 rounded-full text-sm font-bold uppercase tracking-[0.15em] transition-all"
-                >
-                  Schedule Demo
                 </Button>
               </div>
             </div>
@@ -300,13 +302,6 @@ export function ForRecruitersPage({ onNavigate }: ForRecruitersPageProps) {
                   Every candidate undergoes rigorous skill validation and background checks.
                   We eliminate noise, providing you with a signal you can trust.
                 </p>
-                <Button
-                  onClick={() => onNavigate('verification-process')}
-                  variant="secondary"
-                  className="bg-white !text-slate-900 hover:bg-blue-50 rounded-full h-12 px-8 uppercase font-bold text-xs tracking-[0.2em] transition-all"
-                >
-                  Learn More
-                </Button>
               </div>
               <div className="space-y-6">
                 {verificationBenefits.map((item, index) => {

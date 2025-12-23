@@ -201,17 +201,6 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
               {loading ? 'Authenticating Access...' : 'Sign In'}
             </Button>
           </form>
-
-          <div className="mt-12 text-center">
-            <p className="text-slate-400 text-xs uppercase tracking-widest mb-4">New Administrator?</p>
-            <a
-              href="/admin/register"
-              className="inline-flex items-center text-sm font-bold text-slate-900 hover:text-black hover:underline decoration-2 underline-offset-4 group uppercase tracking-wide"
-            >
-              Create Account
-              <ArrowLeft className="h-4 w-4 ml-2 rotate-180 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </div>
         </div>
       </div>
     </div>

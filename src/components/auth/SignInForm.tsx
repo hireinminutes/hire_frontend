@@ -48,7 +48,7 @@ export function SignInForm({ role, onNavigate, onToggleMode }: SignInFormProps) 
                         Email Address
                     </label>
                     <div className="relative group">
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 transition-colors">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors">
                             <Mail className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                         </div>
                         <input
@@ -76,7 +76,7 @@ export function SignInForm({ role, onNavigate, onToggleMode }: SignInFormProps) 
                         </button>
                     </div>
                     <div className="relative group">
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 transition-colors">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors">
                             <Lock className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                         </div>
                         <input

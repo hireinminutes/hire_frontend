@@ -489,6 +489,18 @@ export interface ContactSubmission {
   updatedAt?: Date;
 }
 
+export interface AdminNotification {
+  _id: string;
+  recipient: string;
+  recipientModel: string;
+  type: string;
+  title: string;
+  message: string;
+  data?: any;
+  read: boolean;
+  createdAt: Date;
+}
+
 export interface DashboardStats {
   totalCandidates: number;
   candidatesGrowth: number;
