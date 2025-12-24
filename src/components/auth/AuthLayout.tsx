@@ -17,7 +17,7 @@ export function AuthLayout({ children, role, onNavigate, isSignUp }: AuthLayoutP
             { icon: Globe, text: 'Remote and global opportunities' },
         ],
         employer: [
-            { icon: Users, text: 'Reach 100K+ pre-vetted candidates' },
+            { icon: Users, text: 'Reach 1000+ pre-vetted candidates' },
             { icon: CheckCircle, text: '90-day hiring satisfaction guarantee' },
             { icon: Zap, text: '70% faster hiring process' },
             { icon: Shield, text: 'Verified skill certifications' },

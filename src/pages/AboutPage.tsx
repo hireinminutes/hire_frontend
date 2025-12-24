@@ -133,7 +133,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10">
                   <div className="text-center">
-                    <div className="text-2xl font-black text-amber-400 mb-1">500+</div>
+                    <div className="text-2xl font-black text-amber-400 mb-1">50+</div>
                     <div className="text-[10px] text-slate-400 uppercase tracking-wide">Companies</div>
                   </div>
                   <div className="text-center">
