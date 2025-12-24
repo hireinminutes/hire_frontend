@@ -3,58 +3,58 @@ import { motion } from "framer-motion";
 
 const testimonials = [
     {
-        text: "This ERP revolutionized our operations, streamlining finance and inventory. The cloud-based platform keeps us productive, even remotely.",
+        text: "I got 3 interview calls within a week of creating my profile! The skill verification really helped me stand out to recruiters.",
         image: "https://randomuser.me/api/portraits/women/1.jpg",
-        name: "Briana Patton",
-        role: "Operations Manager",
+        name: "Lakshmi Iyer",
+        role: "React Developer",
     },
     {
-        text: "Implementing this ERP was smooth and quick. The customizable, user-friendly interface made team training effortless.",
+        text: "Hire In Minutes helped me transition from marketing to product management. The career path guidance was incredibly valuable.",
         image: "https://randomuser.me/api/portraits/men/2.jpg",
-        name: "Bilal Ahmed",
-        role: "IT Manager",
+        name: "Karthik Reddy",
+        role: "Product Manager",
     },
     {
-        text: "The support team is exceptional, guiding us through setup and providing ongoing assistance, ensuring our satisfaction.",
+        text: "As a recruiter, this platform cut our hiring time by 60%. The verified candidates are exactly what we were looking for.",
         image: "https://randomuser.me/api/portraits/women/3.jpg",
-        name: "Saman Malik",
-        role: "Customer Support Lead",
+        name: "Divya Nair",
+        role: "HR Manager, TechCorp",
     },
     {
-        text: "This ERP's seamless integration enhanced our business operations and efficiency. Highly recommend for its intuitive interface.",
+        text: "The skill assessments gave me confidence in my abilities. I landed a job with 40% higher salary than expected!",
         image: "https://randomuser.me/api/portraits/men/4.jpg",
-        name: "Omar Raza",
-        role: "CEO",
+        name: "Arun Kumar",
+        role: "Data Scientist",
     },
     {
-        text: "Its robust features and quick support have transformed our workflow, making us significantly more efficient.",
+        text: "We found our entire development team through this platform. The quality of candidates is outstanding.",
         image: "https://randomuser.me/api/portraits/women/5.jpg",
-        name: "Zainab Hussain",
-        role: "Project Manager",
+        name: "Priya Menon",
+        role: "CTO, StartupXYZ",
     },
     {
-        text: "The smooth implementation exceeded expectations. It streamlined processes, improving overall business performance.",
+        text: "Finally, a platform that values skills over resumes. Got hired within 2 weeks of signing up!",
         image: "https://randomuser.me/api/portraits/women/6.jpg",
-        name: "Aliza Khan",
-        role: "Business Analyst",
+        name: "Anjali Krishnan",
+        role: "UI/UX Designer",
     },
     {
-        text: "Our business functions improved with a user-friendly design and positive customer feedback.",
+        text: "The direct access to hiring managers made all the difference. No more waiting in the ATS black hole.",
         image: "https://randomuser.me/api/portraits/men/7.jpg",
-        name: "Farhan Siddiqui",
-        role: "Marketing Director",
+        name: "Vijay Subramanian",
+        role: "Full Stack Developer",
     },
     {
-        text: "They delivered a solution that exceeded expectations, understanding our needs and enhancing our operations.",
+        text: "As a startup founder, finding pre-vetted talent this quickly was a game-changer for our growth.",
         image: "https://randomuser.me/api/portraits/women/8.jpg",
-        name: "Sana Sheikh",
-        role: "Sales Manager",
+        name: "Meera Rao",
+        role: "Founder, InnovateLabs",
     },
     {
-        text: "Using this ERP, our online presence and conversions significantly improved, boosting business performance.",
+        text: "The platform's AI matching is spot-on. Every job recommendation was relevant to my skills and career goals.",
         image: "https://randomuser.me/api/portraits/men/9.jpg",
-        name: "Hassan Ali",
-        role: "E-commerce Manager",
+        name: "Ravi Shankar",
+        role: "DevOps Engineer",
     },
 ];
 
@@ -129,7 +129,7 @@ export const Testimonials = () => {
                         What our users say
                     </h2>
                     <p className="text-center text-lg text-slate-600 max-w-2xl">
-                        See what our customers have to say about their experience with our platform.
+                        Real stories from job seekers and recruiters who found success on our platform.
                     </p>
                 </motion.div>
 
