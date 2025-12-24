@@ -12,10 +12,8 @@ export function Footer({ onNavigate }: FooterProps) {
                     {/* Brand Column */}
                     <div className="lg:col-span-2">
                         <div className="flex items-center gap-2 mb-6">
-                            <div className="p-2 rounded-xl bg-blue-600/10 flex items-center justify-center">
-                                <img src="/hireinminuteslogo.png" alt="Hire In Minutes" className="w-6 h-6 object-contain" />
-                            </div>
-                            <span className="text-2xl font-bold text-white tracking-tight">hireinminutes</span>
+                            <img src="/hireinminuteslogo.png" alt="Hire In Minutes" className="w-14 h-14 object-contain" />
+                            <span className="text-2xl font-bold text-white tracking-tight">Hire In Minutes</span>
                         </div>
                         <p className="text-slate-400 mb-8 leading-relaxed max-w-sm">
                             Connecting talent with opportunity. The fastest way to hire and get hired in India. Verified skills, instant matches.
@@ -97,7 +95,7 @@ export function Footer({ onNavigate }: FooterProps) {
 
                 <div className="border-t border-slate-800 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className="text-slate-500 text-sm">
-                        © {new Date().getFullYear()} hireinminutes. All rights reserved.
+                        © {new Date().getFullYear()} Hire In Minutes. All rights reserved.
                     </p>
                     <div className="flex gap-6 text-sm text-slate-500">
                         <button onClick={() => onNavigate('terms-privacy')} className="hover:text-white transition-colors">Privacy Policy</button>

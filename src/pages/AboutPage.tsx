@@ -73,7 +73,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
             </h2>
             <div className="space-y-4 text-lg text-slate-600 leading-relaxed">
               <p>
-                Founded in 2025, hireinminutes began with a frustration: the traditional hiring process was broken. Resumes were ignored, skills were undervalued, and finding the right fit felt like finding a needle in a haystack.
+                Founded in 2025, Hire In Minutes began with a frustration: the traditional hiring process was broken. Resumes were ignored, skills were undervalued, and finding the right fit felt like finding a needle in a haystack.
               </p>
               <p>
                 We set out to change that. By combining AI-driven matching with verified skill assessments, we created a platform where candidates are seen for what they can do, not just where they worked.

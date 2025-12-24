@@ -88,7 +88,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
               onClick={() => onNavigate(user ? (profile?.role === 'employer' ? 'recruiter-dashboard' : 'job-seeker-dashboard') : 'landing')}
             >
               <Briefcase className="h-6 w-6 text-white" strokeWidth={2} />
-              <span className="text-lg font-bold text-white">hireinminutes</span>
+              <span className="text-lg font-bold text-white">Hire In Minutes</span>
             </div>
 
             {/* Desktop Nav */}

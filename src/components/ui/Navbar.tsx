@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Briefcase, User, LogOut, ChevronDown, Sparkles } from 'lucide-react';
+import { Menu, X, User, LogOut, ChevronDown, Sparkles } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface NavbarProps {
@@ -112,17 +112,12 @@ export function Navbar({ onNavigate, currentPage = 'landing' }: NavbarProps) {
                     <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
                         {/* Brand Logo - Simple & Professional */}
                         <div
-                            className="flex items-center gap-2 cursor-pointer group select-none"
+                            className="flex items-center gap-3 cursor-pointer group select-none"
                             onClick={() => handleNavClick('landing')}
                         >
-                            <div className={`p-1.5 rounded-xl transition-colors ${isDarkTheme
-                                ? 'bg-white/10 group-hover:bg-white/20'
-                                : 'bg-blue-50 group-hover:bg-blue-100'
-                                }`}>
-                                <img src="/hireinminuteslogo.png" alt="Hire In Minutes" className="w-5 h-5 object-contain" />
-                            </div>
+                            <img src="/hireinminuteslogo.png" alt="Hire In Minutes" className="w-12 h-12 object-contain" />
                             <span className={`text-lg font-bold tracking-tight ${isDarkTheme ? 'text-white' : 'text-slate-900'}`}>
-                                hireinminutes
+                                Hire In Minutes
                             </span>
                         </div>
 

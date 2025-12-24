@@ -255,7 +255,7 @@ const CardNav: React.FC<CardNavProps> = ({
             style={{ color: logoColor }}
           >
             <Briefcase className="h-6 w-6" strokeWidth={2.5} style={{ color: logoColor }} />
-            <span className="text-lg font-bold tracking-tight" style={{ color: logoColor }}>hireinminutes</span>
+            <span className="text-lg font-bold tracking-tight" style={{ color: logoColor }}>Hire In Minutes</span>
           </div>
 
           {/* CTA / User Menu (Mobile: Right, Desktop: Right) */}
