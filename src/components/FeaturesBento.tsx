@@ -205,7 +205,7 @@ export function FeaturesBento({ onNavigate }: { onNavigate: (page: string) => vo
                                     </div>
                                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
                                         <Users className="text-blue-500 mb-2 w-5 h-5 md:w-6 md:h-6" />
-                                        <div className="text-xl md:text-2xl font-bold text-slate-900">10k+</div>
+                                        <div className="text-xl md:text-2xl font-bold text-slate-900">100+</div>
                                         <div className="text-xs text-slate-500">Active Talent</div>
                                     </div>
                                 </div>
