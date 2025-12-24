@@ -23,7 +23,7 @@ export function ForRecruitersPage({ onNavigate }: ForRecruitersPageProps) {
     {
       icon: ShieldCheck,
       title: 'Verified Talent Pool',
-      description: 'Access 100K+ candidates with certified skills and background checks',
+      description: 'Access 1000+ candidates with certified skills and background checks',
       color: 'text-emerald-500',
       bg: 'bg-emerald-50'
     },
@@ -180,7 +180,7 @@ export function ForRecruitersPage({ onNavigate }: ForRecruitersPageProps) {
                   </div>
 
                   <div className="text-center">
-                    <div className="text-6xl font-bold text-white mb-2">100K+</div>
+                    <div className="text-6xl font-bold text-white mb-2">1000+</div>
                     <div className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">Verified Candidates</div>
                   </div>
 

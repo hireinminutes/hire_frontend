@@ -9,7 +9,6 @@ import {
   Target, Users, Sparkles, Briefcase
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { TestimonialMarquee } from '../components/ui/TestimonialMarquee';
 
 
 interface ForCandidatesPageProps {
@@ -69,32 +68,7 @@ export function ForCandidatesPage({ onNavigate }: ForCandidatesPageProps) {
     }
   ];
 
-  const successStories = [
-    {
-      name: 'Priya Sharma',
-      role: 'React Developer',
-      company: 'TechCorp',
-      story: 'Got 3 interview calls within a week of getting verified. Landed a 40% higher salary than expected!',
-      avatar: 'PS',
-      badges: ['Verified React', 'Top 10%']
-    },
-    {
-      name: 'Rahul Verma',
-      role: 'Data Scientist',
-      company: 'DataSystems',
-      story: 'The skill verification helped me stand out. Recruiters contacted me instead of me applying!',
-      avatar: 'RV',
-      badges: ['Verified Python', 'ML Expert']
-    },
-    {
-      name: 'Ananya Patel',
-      role: 'Product Manager',
-      company: 'StartupXYZ',
-      story: 'Platform helped me transition from marketing to product management seamlessly.',
-      avatar: 'AP',
-      badges: ['Verified Product', 'Leadership']
-    }
-  ];
+
 
   const valuePropositions = [
     {
@@ -385,14 +359,6 @@ export function ForCandidatesPage({ onNavigate }: ForCandidatesPageProps) {
           </div>
         </div>
       </div>
-
-      {/* Success Stories */}
-      <TestimonialMarquee
-        title="Success Stories"
-        description="Real candidates who transformed their careers with Hire in Minutes"
-        items={successStories}
-        speed="slow"
-      />
 
       {/* Final CTA */}
       <div className="py-24 bg-white relative overflow-hidden">
