@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowRight, Briefcase, GraduationCap, User, CheckCircle2, Lock } from 'lucide-react';
+import { ArrowRight, Briefcase, GraduationCap, User, CheckCircle2, Lock, ArrowLeft } from 'lucide-react';
 
 interface RoleSelectPageProps {
   onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup') => void;
@@ -74,6 +74,15 @@ export function RoleSelectPage({ onNavigate }: RoleSelectPageProps) {
 
   return (
     <div className="min-h-screen w-full font-sans bg-slate-950 selection:bg-blue-500/30 selection:text-blue-200 overflow-hidden">
+
+      {/* Back Button - Fixed Position */}
+      <button
+        onClick={() => onNavigate('landing')}
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-slate-800/80 backdrop-blur-md text-white rounded-xl border border-slate-700/50 hover:bg-slate-700 transition-all duration-300 group shadow-lg hover:shadow-xl"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
+        <span className="text-sm font-semibold">Back to Home</span>
+      </button>
 
       {/* Main Split Layout */}
       <div className={`flex flex-col md:flex-row h-screen w-full transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>

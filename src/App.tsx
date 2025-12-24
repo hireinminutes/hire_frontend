@@ -608,8 +608,8 @@ function AppContent() {
       {/* Scroll to top on navigation */}
       <ScrollToTop trigger={pageState} />
 
-      {/* Show Navbar on public pages - HIDE if user is logged in */}
-      {!user && (
+      {/* Show Navbar on public pages - HIDE if user is logged in OR on auth/role-select pages */}
+      {!user && !['auth', 'role-select'].includes(pageState.page) && (
         <Navbar onNavigate={handleNavigate} currentPage={pageState.page} />
       )}
 
