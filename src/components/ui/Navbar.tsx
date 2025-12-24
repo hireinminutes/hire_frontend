@@ -116,10 +116,10 @@ export function Navbar({ onNavigate, currentPage = 'landing' }: NavbarProps) {
                             onClick={() => handleNavClick('landing')}
                         >
                             <div className={`p-1.5 rounded-xl transition-colors ${isDarkTheme
-                                ? 'bg-white/10 text-blue-400 group-hover:bg-white/20'
-                                : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100'
+                                ? 'bg-white/10 group-hover:bg-white/20'
+                                : 'bg-blue-50 group-hover:bg-blue-100'
                                 }`}>
-                                <Briefcase className="w-5 h-5" strokeWidth={2.5} />
+                                <img src="/hireinminuteslogo.png" alt="Hire In Minutes" className="w-5 h-5 object-contain" />
                             </div>
                             <span className={`text-lg font-bold tracking-tight ${isDarkTheme ? 'text-white' : 'text-slate-900'}`}>
                                 hireinminutes

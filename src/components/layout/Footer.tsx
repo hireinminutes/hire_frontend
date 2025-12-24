@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Facebook, Twitter, Linkedin, Instagram, ArrowRight, Briefcase } from 'lucide-react';
+import { MapPin, Phone, Mail, Linkedin, Instagram, ArrowRight, Youtube } from 'lucide-react';
 
 interface FooterProps {
     onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup') => void;
@@ -12,8 +12,8 @@ export function Footer({ onNavigate }: FooterProps) {
                     {/* Brand Column */}
                     <div className="lg:col-span-2">
                         <div className="flex items-center gap-2 mb-6">
-                            <div className="p-2 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center">
-                                <Briefcase className="w-6 h-6" strokeWidth={2.5} />
+                            <div className="p-2 rounded-xl bg-blue-600/10 flex items-center justify-center">
+                                <img src="/hireinminuteslogo.png" alt="Hire In Minutes" className="w-6 h-6 object-contain" />
                             </div>
                             <span className="text-2xl font-bold text-white tracking-tight">hireinminutes</span>
                         </div>
@@ -21,17 +21,14 @@ export function Footer({ onNavigate }: FooterProps) {
                             Connecting talent with opportunity. The fastest way to hire and get hired in India. Verified skills, instant matches.
                         </p>
                         <div className="flex gap-4">
-                            <a href="#" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors">
+                            <a href="https://www.instagram.com/hire_in_minutes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors">
+                                <Instagram className="h-5 w-5" />
+                            </a>
+                            <a href="https://www.linkedin.com/company/hire-in-minutes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors">
                                 <Linkedin className="h-5 w-5" />
                             </a>
-                            <a href="#" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-400 hover:text-white transition-colors">
-                                <Twitter className="h-5 w-5" />
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-700 hover:text-white transition-colors">
-                                <Facebook className="h-5 w-5" />
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors">
-                                <Instagram className="h-5 w-5" />
+                            <a href="https://www.youtube.com/@HireInMinutes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
+                                <Youtube className="h-5 w-5" />
                             </a>
                         </div>
                     </div>
