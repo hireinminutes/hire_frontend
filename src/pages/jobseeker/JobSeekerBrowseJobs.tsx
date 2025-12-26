@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Briefcase, Search, Clock, X, DollarSign, Filter, ChevronDown, Heart
+  Briefcase, Search, Clock, X, Filter, ChevronDown, Heart
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -198,15 +198,12 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
       const token = localStorage.getItem('token');
 
       // Determine Amount with Differential Pricing
-      let amount = 9900; // default starter
+      let amount = 0;
       if (plan === 'premium') amount = 49900;
       if (plan === 'pro') amount = 99900;
 
       // Apply Differential Pricing Logic (Matches backend)
-      if (user?.plan === 'starter') {
-        if (plan === 'premium') amount = 39900; // 499 - 100? No, user rule says 399
-        if (plan === 'pro') amount = 89900;    // 999 - 100? No, user rule says 899
-      } else if (user?.plan === 'premium') {
+      if (user?.plan === 'premium') {
         if (plan === 'pro') amount = 50000;    // 999 - 499 = 500
       }
 
@@ -308,26 +305,16 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
 
     // Pricing configuration
     const planPrices = {
-      starter: 99,
       premium: 499,
       pro: 999
     };
 
     // Calculate upgrade prices
     const getUpgradePrice = (targetPlan: string) => {
-      if (currentPlan === 'starter') {
-        if (targetPlan === 'premium') return 399;
-        if (targetPlan === 'pro') return 899;
-      }
       if (currentPlan === 'premium') {
         if (targetPlan === 'pro') return 500;
       }
       return planPrices[targetPlan as keyof typeof planPrices];
-    };
-
-    const isUpgrade = (targetPlan: string) => {
-      const planLevels = { free: 0, starter: 1, premium: 2, pro: 3 };
-      return planLevels[targetPlan as keyof typeof planLevels] > planLevels[currentPlan as keyof typeof planLevels];
     };
 
     // If already on Pro, show active message
@@ -356,43 +343,26 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
           <p className="text-slate-600 max-w-2xl mx-auto font-medium">
             {currentPlan !== 'free'
               ? `You are currently on the ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan. Upgrade to unlock even more opportunities.`
-              : 'Upgrade to unlock job applications and interview opportunities. Select the plan that fits your career goals.'}
+              : 'Job applications are free! Upgrade to get guaranteed interview opportunities with top companies.'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
-          {/* Starter Plan */}
-          <div className={currentPlan !== 'free' ? 'opacity-50 pointer-events-none' : ''}>
-            <PlanCard
-              name="Starter"
-              price={99}
-              features={[
-                "Apply for unlimited jobs",
-                "Profile visibility to recruiters",
-                "No interview support included"
-              ]}
-              onSubscribe={() => handleSubscribe('starter')}
-              isLoading={subscribingTo === 'starter'}
-            />
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto px-4">
           {/* Premium Plan */}
           <div className={currentPlan === 'premium' ? 'opacity-50 pointer-events-none' : ''}>
             <PlanCard
               name="Premium"
               price={499}
               features={[
-                "Everything in Starter",
+                "Apply for unlimited jobs",
+                "Profile visibility to recruiters",
                 "1 Guaranteed Interview Opportunity",
                 "Priority application status"
               ]}
-              recommended={currentPlan === 'free' || currentPlan === 'starter'}
+              recommended={currentPlan === 'free'}
               onSubscribe={() => handleSubscribe('premium')}
               isLoading={subscribingTo === 'premium'}
-              isUpgrade={currentPlan === 'starter'}
-              upgradePrice={getUpgradePrice('premium')}
-              originalPrice={499}
-              paidAmount={currentPlan === 'starter' ? 99 : undefined}
+              isUpgrade={false}
             />
           </div>
 
@@ -409,10 +379,10 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
               ]}
               onSubscribe={() => handleSubscribe('pro')}
               isLoading={subscribingTo === 'pro'}
-              isUpgrade={currentPlan === 'starter' || currentPlan === 'premium'}
+              isUpgrade={currentPlan === 'premium'}
               upgradePrice={getUpgradePrice('pro')}
               originalPrice={999}
-              paidAmount={currentPlan === 'starter' ? 99 : currentPlan === 'premium' ? 499 : undefined}
+              paidAmount={currentPlan === 'premium' ? 499 : undefined}
             />
           </div>
         </div>
@@ -448,25 +418,7 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
       </div>
 
       <div className="relative">
-        {/* Overlay for Free Plan Users - Covers Filter & Jobs */}
-        {(!user?.plan || user.plan === 'free') && (
-          <div className="absolute inset-0 z-40 backdrop-blur-md bg-white/30 flex flex-col items-center justify-center rounded-3xl border border-white/20 pt-[20vh]">
-            <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl text-center max-w-md mx-4 border border-white/50 sticky top-20">
-              <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-white shadow-xl shadow-slate-900/20">
-                <DollarSign className="w-8 h-8" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Unlock Job Listings</h3>
-              <p className="text-slate-600 mb-6 font-medium leading-relaxed">
-                Subscribe to any plan above to view full job details and start applying.
-              </p>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Select a plan above
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className={(!user?.plan || user.plan === 'free') ? 'blur-sm pointer-events-none select-none opacity-50' : ''}>
+        <div>
 
 
 
@@ -558,28 +510,10 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
         </div>
 
 
-        {/* Jobs Grid Container with Overlay relative positioning */}
+        {/* Jobs Grid Container */}
         <div className="relative">
-          {/* Overlay for Free Plan Users */}
-          {(!user?.plan || user.plan === 'free') && (
-            <div className="absolute inset-0 z-20 backdrop-blur-md bg-white/30 flex flex-col items-center justify-center rounded-3xl border border-white/20">
-              <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl text-center max-w-md mx-4 border border-white/50">
-                <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-white shadow-xl shadow-slate-900/20">
-                  <DollarSign className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-2">Unlock Job Listings</h3>
-                <p className="text-slate-600 mb-6 font-medium leading-relaxed">
-                  Subscribe to any plan above to view full job details and start applying.
-                </p>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Select a plan above
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Actual Job Grid (Blurred if free plan) */}
-          <div className={(!user?.plan || user.plan === 'free') ? 'blur-sm pointer-events-none select-none opacity-50' : ''}>
+          {/* Actual Job Grid */}
+          <div>
             {browseJobsLoading ? (
 
               <div className="flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">

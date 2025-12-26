@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   MapPin, Briefcase, ArrowLeft, Edit, X,
   CheckCircle, Shield, Building2, Share2, Clock, ArrowUpRight,
-  User, FileText, Heart, PlusCircle, Users, Crown
+  User, FileText, Heart, PlusCircle, Users
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -190,12 +190,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
     }
   }, [jobId, profile, checkApplicationStatus]);
 
-  // Auto-show upgrade modal for free users
-  useEffect(() => {
-    if (profile?.role === 'job_seeker' && (profile as any)?.plan === 'free') {
-      setShowUpgradeModal(true);
-    }
-  }, [profile]);
+  // Removed auto-show upgrade modal - job applications are now free
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -313,11 +308,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
       return;
     }
 
-    // Check for plan
-    if ((profile as any)?.plan === 'free') {
-      setShowUpgradeModal(true);
-      return;
-    }
+    // Removed plan check - job applications are now free for everyone
 
     setApplying(true);
     try {
@@ -519,27 +510,10 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
           {/* LEFT COLUMN - MAIN CONTENT */}
           <div className="lg:col-span-2 space-y-8 relative">
 
-            {/* Upgrade Overlay for Free Users */}
-            {profile?.role === 'job_seeker' && (profile as any)?.plan === 'free' && (
-              <div className="absolute inset-0 z-50 backdrop-blur-[6px] bg-white/30 flex flex-col items-center justify-center rounded-[24px] border border-slate-200">
-                <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md text-center border border-slate-100">
-                  <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600">
-                    <Crown className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 mb-2">Upgrade to View Details</h3>
-                  <p className="text-slate-500 mb-6">Unlock full job descriptions, salary details, and application access with our premium plans.</p>
-                  <Button
-                    onClick={() => onNavigate('job-seeker-dashboard', undefined, undefined, undefined, undefined, undefined, 'browse')}
-                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold h-12 text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-                  >
-                    View Plans & Upgrade
-                  </Button>
-                </div>
-              </div>
-            )}
+            {/* Removed upgrade overlay - job details are now free to view */}
 
             {/* 1. Job Description Card */}
-            <div className={`bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 ${(profile as any)?.plan === 'free' ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
+            <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100">
               <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-blue-500" />
                 About the Role
@@ -581,7 +555,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
             </div>
 
             {/* 2. Skills & Requirements Card */}
-            <div className={`bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 ${(profile as any)?.plan === 'free' ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
+            <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100">
               <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-emerald-500" />
                 Skills & Requirements
@@ -731,21 +705,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
                       </Button>
                     )}
 
-                    {/* Upgrade Prompt for Free Users */}
-                    {profile?.role === 'job_seeker' && (profile as any)?.plan === 'free' && (
-                      <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-xl">
-                        <p className="text-xs text-amber-800 font-medium text-center mb-2">
-                          Upgrade to Apply for Jobs
-                        </p>
-                        <Button
-                          onClick={() => onNavigate('job-seeker-dashboard')} // Or 'plans' if available
-                          variant="outline"
-                          className="w-full h-8 text-xs border-amber-200 text-amber-700 hover:bg-amber-100"
-                        >
-                          View Plans
-                        </Button>
-                      </div>
-                    )}
+                    {/* Removed upgrade prompt - job applications are now free */}
 
                     <button
                       onClick={handleShare}

@@ -620,7 +620,6 @@ export const CandidatesTab: React.FC<CandidatesTabProps> = ({
                 >
                   <option value="All">All</option>
                   <option value="Free">Free</option>
-                  <option value="Starter">Starter</option>
                   <option value="Premium">Premium</option>
                   <option value="Pro">Pro</option>
                 </select>

@@ -13,7 +13,7 @@ interface ApprovalsTabProps {
   onSearchChange: (query: string) => void;
   onApprove: (recruiterId: string) => void;
   onReject: (recruiterId: string) => void;
-  onViewProfile: (recruiterId: string) => void;
+  onViewProfile: (approval: FormattedRecruiterApproval) => void;
   onExport: () => void;
 }
 
@@ -193,7 +193,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                           variant="ghost"
                           className="text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg"
                           title="View Details"
-                          onClick={() => onViewProfile(approval.recruiterId)}
+                          onClick={() => onViewProfile(approval)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>

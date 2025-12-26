@@ -34,6 +34,7 @@ import { NotificationsTab, ContactViewModal } from './admin/NotificationsTab';
 
 // Import modal components
 import { DeleteDialog, VerifyDialog, ProfileModal, RejectRecruiterDialog } from './admin/Modals';
+import RecruiterApprovalModal from './admin/RecruiterApprovalModal';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -90,6 +91,8 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
   const [userToVerify, setUserToVerify] = useState<FormattedCandidate | FormattedRecruiterApproval | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<Candidate | RecruiterProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [selectedApproval, setSelectedApproval] = useState<FormattedRecruiterApproval | null>(null);
 
   // Reject dialog
   const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -857,6 +860,11 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     }
   };
 
+  const handleViewApprovalDetails = (approval: FormattedRecruiterApproval) => {
+    setSelectedApproval(approval);
+    setShowApprovalModal(true);
+  };
+
   const handleVerifyCandidate = async () => {
     if (!userToVerify) return;
     try {
@@ -1486,7 +1494,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
               onSearchChange={setSearchQuery}
               onApprove={handleApproveRecruiter}
               onReject={handleRejectRecruiter}
-              onViewProfile={(id) => handleViewRecruiterProfile(id)}
+              onViewProfile={handleViewApprovalDetails}
               onExport={handleExportApprovals}
             />
           )}
@@ -1737,6 +1745,16 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
           onClose={() => {
             setShowContactModal(false);
             setSelectedContact(null);
+          }}
+        />
+
+        {/* Recruiter Approval Details Modal */}
+        <RecruiterApprovalModal
+          isOpen={showApprovalModal}
+          approval={selectedApproval}
+          onClose={() => {
+            setShowApprovalModal(false);
+            setSelectedApproval(null);
           }}
         />
 
