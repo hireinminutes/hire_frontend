@@ -393,10 +393,15 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
 
 
 
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing-section');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="space-y-10 pb-12">
-      {renderPlans()}
-
       <div className="relative">
         {/* Glassmorphic Header - Mobile Optimized */}
         <div className="relative overflow-hidden rounded-2xl md:rounded-[32px] bg-slate-900 text-white p-5 sm:p-6 md:p-8 shadow-2xl shadow-slate-900/20 isolate mb-3 sm:mb-5">
@@ -404,15 +409,25 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
           <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl -z-10"></div>
 
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 sm:mb-3 text-blue-200">
-              <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" /> Job Search
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 sm:mb-3 text-blue-200">
+                  <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" /> Job Search
+                </div>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-1 sm:mb-2">
+                  Browse Jobs
+                </h1>
+                <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-medium">
+                  Discover opportunities that match your <span className="text-white font-bold">skills</span> and <span className="text-white font-bold">aspirations</span>.
+                </p>
+              </div>
+              <Button
+                onClick={scrollToPricing}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 whitespace-nowrap"
+              >
+                Get Premium
+              </Button>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-1 sm:mb-2">
-              Browse Jobs
-            </h1>
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-medium">
-              Discover opportunities that match your <span className="text-white font-bold">skills</span> and <span className="text-white font-bold">aspirations</span>.
-            </p>
           </div>
         </div>
       </div>
@@ -645,6 +660,11 @@ export function JobSeekerBrowseJobs({ onNavigate }: JobSeekerPageProps) {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Pricing Section at Bottom */}
+      <div id="pricing-section" className="mt-16 scroll-mt-20">
+        {renderPlans()}
       </div>
     </div >
   );
