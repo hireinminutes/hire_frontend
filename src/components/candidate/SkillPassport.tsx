@@ -128,8 +128,10 @@ export function SkillPassport({ userProfile }: SkillPassportProps) {
                                     <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-blue-300 uppercase tracking-wider">DEV</span>
                                 </div>
                                 <div className="text-[10px] font-mono text-slate-500 font-medium tracking-wide">#{passport.badgeId || '8926'}</div>
-                                {/* Mock University/College */}
-                                <div className="text-[10px] text-slate-400 font-medium mt-0.5">MIT University</div>
+                                {/* Display user's university/college from education */}
+                                <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                                    {profile?.profile?.education?.[0]?.institution || 'Not specified'}
+                                </div>
                             </div>
                         </div>
 
@@ -194,34 +196,26 @@ export function SkillPassport({ userProfile }: SkillPassportProps) {
                         </div>
                     </div>
 
-                    {/* Footer Stats */}
-                    <div className="grid grid-cols-3 gap-3 pt-2 mt-auto border-t border-white/5">
-                        <div className="bg-slate-800/30 rounded-lg p-2 text-center border border-white/5">
-                            <div className="text-amber-400 mb-0.5 flex justify-center"><Download className="w-3 h-3" /></div> {/* Reuse icon for mock */}
-                            <div className="text-sm font-black text-white">10+</div>
-                            <div className="text-[7px] text-slate-400 font-bold uppercase">Projects</div>
-                        </div>
-                        <div className="bg-slate-800/30 rounded-lg p-2 text-center border border-white/5">
-                            <div className="text-purple-400 mb-0.5 flex justify-center"><TrendingUp className="w-3 h-3" /></div>
-                            <div className="text-sm font-black text-white">Top 5%</div>
-                            <div className="text-[7px] text-slate-400 font-bold uppercase">Rank</div>
-                        </div>
-                        <div className="bg-slate-800/30 rounded-lg p-2 text-center border border-white/5 flex flex-col items-center justify-center">
+                    {/* Footer - Verification Status */}
+                    <div className="pt-4 mt-auto border-t border-white/5">
+                        <div className="bg-slate-800/30 rounded-lg p-3 text-center border border-white/5 flex flex-col items-center justify-center">
                             {isVerified ? (
                                 <>
-                                    <div className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center mb-1">
-                                        <svg className="w-2.5 h-2.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                                    <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mb-2">
+                                        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                         </svg>
                                     </div>
-                                    <div className="text-[8px] font-bold text-green-400 uppercase leading-tight">Verified Candidate</div>
+                                    <div className="text-sm font-bold text-green-400 uppercase leading-tight">Verified Candidate</div>
+                                    <div className="text-[10px] text-slate-400 mt-1">Admin Approved</div>
                                 </>
                             ) : (
                                 <>
-                                    <div className="w-4 h-4 rounded-full bg-slate-500/20 flex items-center justify-center mb-1">
-                                        <span className="text-[10px] text-slate-500 font-bold">?</span>
+                                    <div className="w-8 h-8 rounded-full bg-slate-500/20 flex items-center justify-center mb-2">
+                                        <span className="text-lg text-slate-500 font-bold">?</span>
                                     </div>
-                                    <div className="text-[8px] font-bold text-slate-500 uppercase leading-tight">Unverified</div>
+                                    <div className="text-sm font-bold text-slate-500 uppercase leading-tight">Unverified</div>
+                                    <div className="text-[10px] text-slate-400 mt-1">Pending Verification</div>
                                 </>
                             )}
                         </div>

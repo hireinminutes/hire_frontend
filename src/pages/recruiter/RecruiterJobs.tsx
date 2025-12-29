@@ -1,4 +1,4 @@
-import { Briefcase, PlusCircle, MapPin, Calendar, Clock, IndianRupee, Search, Filter, MoreVertical } from 'lucide-react';
+import { Briefcase, PlusCircle, MapPin, Calendar, Clock, IndianRupee, Search, Filter, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { RecruiterPageProps, Job } from './types';
 import { useState } from 'react';
@@ -12,6 +12,46 @@ interface RecruiterJobsProps extends RecruiterPageProps {
 
 export function RecruiterJobs({ onNavigate, myJobs, onPostJob, loading, profile }: RecruiterJobsProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClick = (job: Job) => {
+    setJobToDelete(job);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!jobToDelete) return;
+
+    setDeleting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const API_BASE_URL = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${API_BASE_URL}/api/jobs/${jobToDelete._id || jobToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete job');
+      }
+
+      alert('Job deleted successfully!');
+      setShowDeleteDialog(false);
+      setJobToDelete(null);
+      // Refresh the page to show updated list
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      alert('Failed to delete job. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -198,15 +238,71 @@ export function RecruiterJobs({ onNavigate, myJobs, onPostJob, loading, profile 
 
                 <div className="flex gap-2 pt-2">
                   <Button
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white"
+                    className="flex-1 bg-slate-900 hover:bg-slate-800 text-white"
                     onClick={() => onNavigate('recruiter-dashboard', job._id || job.id, undefined, undefined, undefined, undefined, 'edit-job')}
                   >
                     Edit
+                  </Button>
+                  <Button
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => handleDeleteClick(job)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
                   </Button>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 bg-red-100 rounded-full">
+                  <Trash2 className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">Delete Job</h2>
+                  <p className="text-slate-600">Are you sure you want to delete this job?</p>
+                </div>
+              </div>
+              {jobToDelete && (
+                <div className="bg-slate-50 p-4 rounded-lg mb-4">
+                  <p className="font-semibold text-slate-900">{jobToDelete.jobDetails?.basicInfo?.jobTitle || 'Untitled Job'}</p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {jobToDelete.jobDetails?.location?.city || 'Remote'} • {jobToDelete.jobDetails?.basicInfo?.employmentType || 'Full-time'}
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-slate-600">
+                This action cannot be undone. All applicant data for this job will be permanently removed.
+              </p>
+            </div>
+            <div className="p-6 border-t border-slate-200 flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setJobToDelete(null);
+                }}
+                disabled={deleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete Job'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

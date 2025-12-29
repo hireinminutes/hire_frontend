@@ -470,7 +470,19 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
       });
       if (!response.ok) throw new Error('Failed to fetch recruiters');
       const data = await response.json();
-      const recruitersData = data.data || [];
+      const rawRecruiters = data.data || [];
+
+      // Map recruiter data to include 'id' field and format properly
+      const recruitersData = rawRecruiters.map((recruiter: any) => ({
+        id: recruiter._id,
+        name: recruiter.fullName || recruiter.name || 'N/A',
+        email: recruiter.email || '',
+        company: recruiter.recruiterOnboardingDetails?.company?.name || recruiter.profile?.company?.name || 'N/A',
+        location: recruiter.recruiterOnboardingDetails?.company?.address || recruiter.profile?.company?.headOfficeLocation?.address || 'N/A',
+        joinDate: recruiter.createdAt ? new Date(recruiter.createdAt).toLocaleDateString() : 'N/A',
+        status: recruiter.approvalStatus || recruiter.status || 'unverified'
+      }));
+
       setRecruiters(recruitersData);
       updateCache('recruiters', recruitersData);
     } catch (err) {
@@ -842,6 +854,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
   };
 
   const handleViewRecruiterProfile = async (recruiterId: string) => {
+    console.log('Viewing recruiter profile for ID:', recruiterId);
     setProfileLoading(true);
     setShowProfileModal(true);
     try {
@@ -849,12 +862,20 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
       const response = await fetch(`${API_BASE_URL}/api/admin/recruiters/${recruiterId}/profile`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error('Failed to fetch recruiter profile');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch recruiter profile' }));
+        throw new Error(errorData.message || 'Failed to fetch recruiter profile');
+      }
       const data = await response.json();
+      console.log('Recruiter profile data:', data);
       const profileData = { ...data.data, _isRecruiterProfile: true };
       setSelectedProfile(profileData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch recruiter profile');
+      console.error('Error fetching recruiter profile:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch recruiter profile';
+      setError(errorMessage);
+      alert(errorMessage);
+      setShowProfileModal(false);
     } finally {
       setProfileLoading(false);
     }

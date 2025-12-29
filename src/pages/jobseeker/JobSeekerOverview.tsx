@@ -433,51 +433,35 @@ export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
             ) : (
               <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden">
                 <div className="divide-y divide-slate-100">
-                  {recommendedJobs.slice(0, 3).map((job) => {
-                    const isFreeUser = (profile as any)?.plan === 'free';
+                  {recommendedJobs.slice(0, 3).map((job) => (
+                    <div
+                      key={job.id}
+                      onClick={() => onNavigate('job-details', job.id)}
+                      className="group p-4 hover:bg-slate-50 transition-all cursor-pointer flex items-center gap-4 text-left relative"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-700 font-bold shrink-0 shadow-sm overflow-hidden">
+                        {typeof job.company.logo === 'string' && job.company.logo.length > 2
+                          ? <img src={job.company.logo} alt="" className="w-full h-full object-cover" />
+                          : job.company.name.charAt(0)}
+                      </div>
 
-                    return (
-                      <div
-                        key={job.id}
-                        onClick={() => {
-                          if (isFreeUser) {
-                            // Redirect to pricing or show modal - for now navigating to pricing/dashboard with intent
-                            setShowUpgradeModal(true);
-                          } else {
-                            onNavigate('job-details', job.id);
-                          }
-                        }}
-                        className="group p-4 hover:bg-slate-50 transition-all cursor-pointer flex items-center gap-4 text-left relative"
-                      >
-                        <div className="w-12 h-12 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-700 font-bold shrink-0 shadow-sm overflow-hidden">
-                          {typeof job.company.logo === 'string' && job.company.logo.length > 2
-                            ? <img src={job.company.logo} alt="" className="w-full h-full object-cover" />
-                            : job.company.name.charAt(0)}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-base truncate">{job.title}</h4>
                         </div>
+                        <p className="text-xs font-medium text-slate-500 truncate mb-1.5">{job.company.name}</p>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-center mb-0.5">
-                            <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-base truncate">{job.title}</h4>
-                            {isFreeUser && (
-                              <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <Sparkles className="w-3 h-3" /> Upgrade to View
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs font-medium text-slate-500 truncate mb-1.5">{job.company.name}</p>
-
-                          <div className="flex flex-wrap gap-2">
-                            <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded">
-                              <MapPin className="w-3 h-3" /> {job.location}
-                            </span>
-                            <span className="text-[10px] font-medium text-emerald-600 flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
-                              <DollarSign className="w-3 h-3" /> {(job.salary_min / 100000).toFixed(1)}L - {(job.salary_max / 100000).toFixed(1)}L
-                            </span>
-                          </div>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded">
+                            <MapPin className="w-3 h-3" /> {job.location}
+                          </span>
+                          <span className="text-[10px] font-medium text-emerald-600 flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
+                            <DollarSign className="w-3 h-3" /> {(job.salary_min / 100000).toFixed(1)}L - {(job.salary_max / 100000).toFixed(1)}L
+                          </span>
                         </div>
                       </div>
-                    )
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
