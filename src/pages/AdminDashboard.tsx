@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import {
   Users, Briefcase, Bell, CheckCircle, BookOpen,
-  Shield, BarChart3, Megaphone, Mail, LogOut
+  Shield, BarChart3, Megaphone, Mail, LogOut, Activity
 } from 'lucide-react';
 
 // Import types and API functions
@@ -26,10 +26,12 @@ import { CandidatesTab } from './admin/CandidatesTab';
 import { RecruitersTab } from './admin/RecruitersTab';
 import { ApprovalsTab } from './admin/ApprovalsTab';
 import { JobsTab } from './admin/JobsTab';
+import { AdminPostJob } from './admin/AdminPostJob';
 import { VerificationTab } from './admin/VerificationTab';
 import { CoursesTab, CourseModal } from './admin/CoursesTab';
 import { AlertsTab, AlertModal } from './admin/AlertsTab';
 import { AdsTab, AdModal, ImageModal } from './admin/AdsTab';
+import { LogsTab } from './admin/LogsTab';
 import { NotificationsTab, ContactViewModal } from './admin/NotificationsTab';
 
 // Import modal components
@@ -1380,11 +1382,13 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     { id: 'recruiters', label: 'Recruiters', icon: Briefcase },
     { id: 'approvals', label: 'Approvals', icon: CheckCircle },
     { id: 'jobs', label: 'Jobs', icon: Briefcase },
+    { id: 'post-job', label: 'Post Job', icon: Briefcase },
     { id: 'verification', label: 'Verification', icon: Shield },
     { id: 'courses', label: 'Courses', icon: BookOpen },
     { id: 'alerts', label: 'Alerts', icon: Bell },
     { id: 'ads', label: 'Ads', icon: Megaphone },
-    { id: 'notifications', label: 'Messages', icon: Mail }
+    { id: 'notifications', label: 'Messages', icon: Mail },
+    { id: 'logs', label: 'Activity Logs', icon: Activity }
   ];
 
   return (
@@ -1527,6 +1531,13 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               onExport={handleExportJobs}
+              onJobDeleted={() => fetchJobs()}
+            />
+          )}
+
+          {activeSection === 'post-job' && (
+            <AdminPostJob
+              onNavigate={(section) => onNavigate?.('admin', undefined, undefined, undefined, undefined, undefined, section)}
             />
           )}
 
@@ -1600,6 +1611,13 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
               onMarkAsRead={handleMarkAsRead}
               onMarkNotificationRead={handleMarkNotificationRead}
               onSendInterview={handleSendInterview}
+            />
+          )}
+
+          {activeSection === 'logs' && (
+            <LogsTab
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
             />
           )}
         </div>

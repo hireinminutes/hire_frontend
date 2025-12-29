@@ -11,7 +11,9 @@ interface JobsTabProps {
   jobsLoading: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onSearchChange: (query: string) => void;
   onExport: () => void;
+  onJobDeleted: () => void;
 }
 
 export const JobsTab: React.FC<JobsTabProps> = ({
@@ -19,8 +21,43 @@ export const JobsTab: React.FC<JobsTabProps> = ({
   jobsLoading,
   searchQuery,
   onSearchChange,
-  onExport
+  onExport,
+  onJobDeleted
 }) => {
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+
+  const handleDeleteJob = async (jobId: string) => {
+    if (!window.confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingId(jobId);
+    try {
+      const token = localStorage.getItem('token');
+      const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+      const response = await fetch(`${API_BASE_URL}/api/admin/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        onJobDeleted();
+      } else {
+        alert(data.message || 'Failed to delete job');
+      }
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      alert('An error occurred while deleting the job');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredJobs = jobs.filter(job =>
     searchQuery === '' ||
     job.jobDetails?.basicInfo?.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -222,9 +259,14 @@ export const JobsTab: React.FC<JobsTabProps> = ({
                           variant="ghost"
                           className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                           title="Delete Job"
-                          onClick={() => {/* Delete Handler */ }}
+                          onClick={() => handleDeleteJob(job._id)}
+                          disabled={deletingId === job._id}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deletingId === job._id ? (
+                            <div className="h-4 w-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </td>
