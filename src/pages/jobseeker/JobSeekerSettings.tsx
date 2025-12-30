@@ -26,6 +26,15 @@ export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Password Change State
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+
 
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -60,6 +69,45 @@ export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
 
   const handleLogout = async () => {
     try { await signOut(); onNavigate('landing'); } catch (e) { console.error(e); }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showToast("New passwords don't match", 'error');
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      showToast("Password must be at least 6 characters", 'error');
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      const response = await fetch(getApiUrl('/api/auth/change-password'), {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          oldPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showToast('Password changed successfully');
+        await refreshProfile();
+        setShowPasswordChange(false);
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        showToast(data.message || 'Failed to change password', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('An error occurred', 'error');
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const handleEmailNotificationsToggle = async (enabled: boolean) => {
@@ -124,19 +172,69 @@ export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
             <div className="bg-white rounded-[24px] border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden divide-y divide-slate-50">
 
               {/* Password */}
-              <div className="p-6 flex items-center justify-between group hover:bg-slate-50/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Lock className="w-6 h-6" />
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                      <Lock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900">Password</h3>
+                      <p className="text-sm text-slate-500 font-medium">
+                        {/* Using tracking if available, else static text or generic 'Securely managed' */}
+                        {(profile as any)?.passwordChangedAt
+                          ? `Last changed on ${new Date((profile as any).passwordChangedAt).toLocaleDateString()}`
+                          : 'Manage your password security'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900">Password</h3>
-                    <p className="text-sm text-slate-500 font-medium">Last changed 3 months ago</p>
-                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPasswordChange(!showPasswordChange)}
+                    className="rounded-xl border-slate-200 font-bold"
+                  >
+                    {showPasswordChange ? 'Cancel' : 'Change'}
+                  </Button>
                 </div>
-                <Button variant="outline" disabled className="rounded-xl border-slate-200 font-bold opacity-50 cursor-not-allowed">
-                  Change (Coming Soon)
-                </Button>
+
+                {showPasswordChange && (
+                  <div className="mt-4 p-6 bg-slate-50 rounded-xl space-y-4 animate-fade-in-up">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Current Password</label>
+                        <input
+                          type="password"
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                          value={passwordData.currentPassword}
+                          onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">New Password</label>
+                        <input
+                          type="password"
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                          value={passwordData.newPassword}
+                          onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Confirm New Password</label>
+                        <input
+                          type="password"
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                          value={passwordData.confirmPassword}
+                          onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                        />
+                      </div>
+                      <div className="flex justify-end pt-2">
+                        <Button onClick={handleChangePassword} disabled={changingPassword} className="bg-slate-900 text-white">
+                          {changingPassword ? 'Updating...' : 'Update Password'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
 
@@ -234,7 +332,7 @@ export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
                 {currentPlan !== 'pro' && (
                   <Button
                     onClick={() => onNavigate('job-seeker-dashboard', undefined, undefined, undefined, undefined, undefined, 'browse')}
-                    className="w-full bg-white text-slate-900 hover:bg-blue-50 font-black h-12 rounded-xl shadow-lg"
+                    className="w-full !bg-white !text-slate-900 hover:bg-blue-50 font-black h-12 rounded-xl shadow-lg"
                   >
                     {currentPlan === 'free' ? 'View Plans' : 'Upgrade Plan'}
                   </Button>

@@ -24,7 +24,9 @@ export function SkillPassport({ userProfile }: SkillPassportProps) {
 
     // Prioritize status 'verified' string, but also check boolean isVerified.
     // However, if status is explicitly 'unverified', ensure we return false.
-    const isVerified = (profile as any)?.status === 'verified' || ((profile as any)?.isVerified === true && (profile as any)?.status !== 'unverified');
+    // AND restrict to premium/pro users only
+    const isPlanEligible = (profile as any)?.plan === 'premium' || (profile as any)?.plan === 'pro';
+    const isVerified = ((profile as any)?.status === 'verified' || ((profile as any)?.isVerified === true && (profile as any)?.status !== 'unverified')) && isPlanEligible;
 
     // Calculate total average score if not provided
     const averageScore = parsedSkills.length > 0

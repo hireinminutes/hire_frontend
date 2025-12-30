@@ -63,6 +63,7 @@ interface User {
       country?: string;
     };
     professionalSummary?: string;
+    headline?: string;
     skills?: (string | { name: string; isVerified?: boolean })[];
     experience?: Experience[];
     education?: Education[];

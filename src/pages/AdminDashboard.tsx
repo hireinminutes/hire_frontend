@@ -476,7 +476,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
 
       // Map recruiter data to include 'id' field and format properly
       const recruitersData = rawRecruiters.map((recruiter: any) => ({
-        id: recruiter._id,
+        id: recruiter._id || recruiter.id,
         name: recruiter.fullName || recruiter.name || 'N/A',
         email: recruiter.email || '',
         company: recruiter.recruiterOnboardingDetails?.company?.name || recruiter.profile?.company?.name || 'N/A',
@@ -916,13 +916,22 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     if (!userToDelete) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userToDelete.id}`, {
+      const userId = userToDelete.id || userToDelete._id;
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userType: userToDelete._userType || 'candidate' })
       });
       if (!response.ok) throw new Error('Failed to delete user');
-      setCandidates(candidates.filter(c => c.id !== userToDelete.id));
+      if (userToDelete._userType === 'recruiter') {
+        setRecruiters(prev => prev.filter(r => r.id !== userId));
+        // Also update cache
+        if (dataCache.recruiters) {
+          updateCache('recruiters', dataCache.recruiters.filter(r => r.id !== userId));
+        }
+      } else {
+        setCandidates(candidates.filter(c => ((c as any).id || (c as any)._id) !== userId));
+      }
       setShowDeleteDialog(false);
       setUserToDelete(null);
     } catch (err) {

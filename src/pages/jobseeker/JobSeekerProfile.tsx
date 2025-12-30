@@ -52,7 +52,7 @@ export function JobSeekerProfile(_props: JobSeekerPageProps) {
         phone: p?.phone || '',
         location: locString,
         bio: p?.professionalSummary || '',
-        title: '',
+        title: p?.headline || '',
         github: p?.socialProfiles?.github || '',
         linkedin: p?.socialProfiles?.linkedin || '',
         portfolio: p?.socialProfiles?.website || '',
@@ -126,6 +126,7 @@ export function JobSeekerProfile(_props: JobSeekerPageProps) {
       const updatePayload: any = {
         fullName: formData.fullName,
         phone: formData.phone,
+        headline: formData.title,
         professionalSummary: formData.bio,
         city: city,
         state: state,
