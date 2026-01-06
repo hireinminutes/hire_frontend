@@ -11,9 +11,9 @@ interface JobsTabProps {
   jobsLoading: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onSearchChange: (query: string) => void;
   onExport: () => void;
   onJobDeleted: () => void;
+  onViewJob: (job: FormattedJob) => void;
 }
 
 export const JobsTab: React.FC<JobsTabProps> = ({
@@ -22,7 +22,8 @@ export const JobsTab: React.FC<JobsTabProps> = ({
   searchQuery,
   onSearchChange,
   onExport,
-  onJobDeleted
+  onJobDeleted,
+  onViewJob
 }) => {
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
 
@@ -69,7 +70,7 @@ export const JobsTab: React.FC<JobsTabProps> = ({
     total: jobs.length,
     active: jobs.filter(j => j.status === 'active' || j.status === 'open').length,
     closed: jobs.filter(j => j.status === 'closed').length,
-    totalApplications: jobs.reduce((acc, job) => acc + (job.applications?.length || 0), 0)
+    totalApplications: jobs.reduce((acc, job) => acc + (job.applicationCount || 0), 0)
   };
 
   if (jobsLoading) {
@@ -240,7 +241,7 @@ export const JobsTab: React.FC<JobsTabProps> = ({
                     </td>
                     <td className="hidden md:table-cell px-6 py-4 text-center">
                       <span className="inline-flex items-center justify-center w-8 h-6 rounded-md bg-blue-50 text-blue-700 text-xs font-bold">
-                        {job.applications?.length || 0}
+                        {job.applicationCount || 0}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
@@ -250,7 +251,7 @@ export const JobsTab: React.FC<JobsTabProps> = ({
                           variant="ghost"
                           className="hover:bg-amber-50 hover:text-amber-600 rounded-lg"
                           title="View Details"
-                          onClick={() => {/* View Details Handler */ }}
+                          onClick={() => onViewJob(job)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>

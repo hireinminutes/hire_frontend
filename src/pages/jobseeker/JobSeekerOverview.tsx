@@ -126,13 +126,35 @@ export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
 
   const profileCompletion = useCallback(() => {
     let completion = 0;
-    if (profile?.fullName) completion += 15;
-    if (profile?.email) completion += 15;
-    if (profile?.profile?.location?.city) completion += 10;
-    if (profile?.profile?.professionalSummary) completion += 15;
+
+    // Basic Info (30%)
+    if (profile?.fullName) completion += 5;
+    if (profile?.email) completion += 5;
+    if (profile?.profile?.phone) completion += 5;
+    if (profile?.profilePicture) completion += 5;
+    if (profile?.profile?.headline) completion += 5;
+    // Location check: string or object with city
+    if (typeof profile?.profile?.location === 'string' && profile.profile.location) completion += 5;
+    else if (profile?.profile?.location?.city) completion += 5;
+
+    // About (10%)
+    if (profile?.profile?.professionalSummary) completion += 10;
+
+    // Skills (15%)
     if (profile?.profile?.skills && profile.profile.skills.length > 0) completion += 15;
+
+    // Experience (15%)
     if (profile?.profile?.experience && profile.profile.experience.length > 0) completion += 15;
-    if (profile?.profile?.documents?.resume) completion += 15;
+
+    // Education (15%)
+    if (profile?.profile?.education && profile.profile.education.length > 0) completion += 15;
+
+    // Social Links (5%)
+    if (profile?.profile?.socialProfiles?.linkedin || profile?.profile?.socialProfiles?.github || profile?.profile?.socialProfiles?.website) completion += 5;
+
+    // Resume (10%)
+    if (profile?.profile?.documents?.resume) completion += 10;
+
     return Math.min(completion, 100);
   }, [profile]);
 

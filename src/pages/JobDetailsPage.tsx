@@ -615,7 +615,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
 
             {/* 3. Benefits Card (Conditional) */}
             {job.benefits && job.benefits.length > 0 && (
-              <div className={`bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 ${(profile as any)?.plan === 'free' ? 'filter blur-sm select-none pointer-events-none' : ''}`}>
+              <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100">
                 <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                   <Shield className="w-5 h-5 text-purple-500" />
                   Perks & Benefits
@@ -717,11 +717,7 @@ export function JobDetailsPage({ jobId, onNavigate }: JobDetailsPageProps) {
                 )}
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-100">
-                  <div className="text-center p-3 rounded-xl bg-slate-50">
-                    <p className="text-slate-500 text-xs font-bold uppercase mb-1">Views</p>
-                    <p className="text-slate-900 font-bold">{job.views || 0}</p>
-                  </div>
+                <div className="grid grid-cols-1 gap-4 mt-6 pt-6 border-t border-slate-100">
                   <div className="text-center p-3 rounded-xl bg-slate-50">
                     <p className="text-slate-500 text-xs font-bold uppercase mb-1">Applied</p>
                     <p className="text-slate-900 font-bold">{job.applicationCount || 0}</p>

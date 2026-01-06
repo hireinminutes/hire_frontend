@@ -111,6 +111,8 @@ export interface Education {
   endYear?: string | number;
   grade?: string;
   score?: string;
+  collegeId?: string | null;
+  isManualEntry?: boolean;
 }
 
 export interface Project {

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 // Import types and API functions
-import {
+import type {
   FormattedCandidate,
   FormattedRecruiterApproval,
   FormattedJob,
@@ -17,7 +17,8 @@ import {
   VerificationApplication,
   Course,
   ContactSubmission,
-  AdminNotification
+  AdminNotification,
+  Recruiter
 } from './admin/types';
 
 // Import tab components
@@ -33,9 +34,7 @@ import { AlertsTab, AlertModal } from './admin/AlertsTab';
 import { AdsTab, AdModal, ImageModal } from './admin/AdsTab';
 import { LogsTab } from './admin/LogsTab';
 import { NotificationsTab, ContactViewModal } from './admin/NotificationsTab';
-
-// Import modal components
-import { DeleteDialog, VerifyDialog, ProfileModal, RejectRecruiterDialog } from './admin/Modals';
+import { DeleteDialog, VerifyDialog, ProfileModal, RejectRecruiterDialog, JobDetailsModal } from './admin/Modals';
 import RecruiterApprovalModal from './admin/RecruiterApprovalModal';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -542,7 +541,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/jobs`, {
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
       if (!response.ok) throw new Error('Failed to fetch jobs');
@@ -618,6 +617,12 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
   // Ad pagination state
   const [adsPage, setAdsPage] = useState(1);
   const [adsHasMore, setAdsHasMore] = useState(true);
+
+  /* Job Modal State */
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<FormattedJob | null>(null);
+
+  /* Refs for infinite scroll (if needed later) or scroll restoration */
 
   const fetchAds = async (pageNum = 1, reset = false) => {
     try {
@@ -1044,6 +1049,12 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
       setSelectedCourse(course);
       setShowDeleteCourseModal(true);
     }
+  };
+
+  // Job handlers
+  const handleViewJob = (job: FormattedJob) => {
+    setSelectedJob(job);
+    setShowJobModal(true);
   };
 
   // Alert handlers
@@ -1541,6 +1552,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
               onSearchChange={setSearchQuery}
               onExport={handleExportJobs}
               onJobDeleted={() => fetchJobs()}
+              onViewJob={handleViewJob}
             />
           )}
 
@@ -1914,6 +1926,12 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
           </div>
         )}
       </main>
+
+      <JobDetailsModal
+        isOpen={showJobModal}
+        job={selectedJob}
+        onClose={() => setShowJobModal(false)}
+      />
     </div>
   );
 }

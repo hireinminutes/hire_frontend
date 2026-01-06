@@ -356,7 +356,7 @@ function AppContent() {
         dashboardSection = parts[1] || 'overview';
       } else if (path.startsWith('payment/status')) {
         page = 'payment-status';
-      } else if (path.startsWith('college/') && !path.startsWith('college/register') && !path.startsWith('college/login')) {
+      } else if ((path === 'college' || path.startsWith('college/')) && !path.startsWith('college/register') && !path.startsWith('college/login')) {
 
         // Handle college dashboard sub-routes
         const parts = path.split('/');

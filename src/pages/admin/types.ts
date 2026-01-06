@@ -101,6 +101,7 @@ export interface Candidate {
   _id: string;
   email: string;
   fullName: string;
+  plan: 'free' | 'starter' | 'premium' | 'pro';
   profilePicture?: string;
   profile: {
     profilePhoto?: string;

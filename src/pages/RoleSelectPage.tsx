@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowRight, Briefcase, GraduationCap, User, CheckCircle2, Lock, ArrowLeft } from 'lucide-react';
+import { ArrowRight, Briefcase, GraduationCap, User, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 interface RoleSelectPageProps {
   onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup') => void;
@@ -116,25 +116,16 @@ export function RoleSelectPage({ onNavigate }: RoleSelectPageProps) {
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  disabled={tab === 'college'}
                   className={`
                     flex-1 px-2 py-2.5 md:px-4 md:py-3 text-xs md:text-sm font-semibold rounded-lg transition-all duration-300 text-center whitespace-nowrap relative group
                     ${activeTab === tab
                       ? 'bg-slate-800 text-white shadow-sm border border-slate-700'
-                      : tab === 'college'
-                        ? 'text-slate-500 cursor-not-allowed opacity-75'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}
                   `}
                 >
                   <div className="flex items-center justify-center gap-2">
                     {tab === 'candidate' ? 'Job Seeker' : tab === 'employer' ? 'Employer' : 'College'}
-                    {tab === 'college' && <Lock className="w-3 h-3" />}
                   </div>
-                  {tab === 'college' && (
-                    <div className="absolute -top-3 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm animate-pulse">
-                      SOON
-                    </div>
-                  )}
                 </button>
               ))}
             </div>

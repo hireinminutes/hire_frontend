@@ -324,7 +324,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const collegeSignIn = async (email: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/college/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
