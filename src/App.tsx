@@ -527,6 +527,7 @@ function AppContent() {
           'notifications',
           'notifications',
           'applicants',
+          'public-profile',
           'not-found'
         ];
 

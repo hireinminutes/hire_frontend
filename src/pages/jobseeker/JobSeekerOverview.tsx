@@ -37,7 +37,7 @@ const StatCard = ({ label, value, icon: Icon, bgClass, iconClass, subtext }: any
 
 // Profile Strength Widget
 const ProfileStrengthWidget = ({ completionScore, onCompleteProfile }: { completionScore: number, onCompleteProfile: () => void }) => (
-  <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[32px] p-8 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20 border border-slate-700/50">
+  <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[32px] p-6 md:p-8 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20 border border-slate-700/50">
     <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-500/30 rounded-full blur-3xl"></div>
     <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl"></div>
 
@@ -493,11 +493,11 @@ export function JobSeekerOverview({ onNavigate }: JobSeekerPageProps) {
 
         {/* Sidebar Column */}
         <div className="space-y-6">
-          <div className="hidden lg:block">
+          <div>
             <ProfileStrengthWidget completionScore={profileCompletion()} onCompleteProfile={() => navigateToSection('profile')} />
           </div>
           {(profile?.plan === 'premium' || profile?.plan === 'pro') && (
-            <div className="hidden lg:block">
+            <div>
               <InterviewRequestWidget
                 interviewCount={profile?.interviewCount || 0}
                 plan={profile?.plan || 'free'}

@@ -92,7 +92,7 @@ export function RecruiterOverview({
           <div className="flex gap-2 sm:gap-3">
             <Button
               onClick={() => handleSectionChange('post-job')}
-              className="bg-white text-slate-900 hover:bg-slate-100 shadow-lg border-none px-5 sm:px-6 py-3 h-12 sm:h-auto text-sm sm:text-base font-bold rounded-xl transition-all"
+              className="bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-900/20 border-none px-5 sm:px-6 py-3 h-12 sm:h-auto text-sm sm:text-base font-bold rounded-xl transition-all"
             >
               <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Post New Job
@@ -273,7 +273,7 @@ export function RecruiterOverview({
               </p>
               <Button
                 onClick={() => handleSectionChange('find-candidates')}
-                className="w-full bg-white text-slate-900 hover:bg-slate-100 border-none font-bold"
+                className="w-full bg-blue-600 text-white hover:bg-blue-700 border-none font-bold shadow-lg shadow-blue-900/20"
               >
                 Search Database
               </Button>

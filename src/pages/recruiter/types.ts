@@ -157,6 +157,11 @@ export interface Candidate {
     education?: string;
     profilePicture?: string;
   };
+  slug?: string;
+  email?: string;
+  applicant?: {
+    email: string;
+  };
 }
 
 export interface JobFormData {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UserCheck, CheckCircle, Mail, Search, MapPin, Briefcase, GraduationCap, X, Zap, Crown } from 'lucide-react';
+import { UserCheck, CheckCircle, Mail, Search, MapPin, Briefcase, GraduationCap, X, Zap, Crown, BookOpen, Star, Phone, FileText, Link as LinkIcon } from 'lucide-react';
 
 import { Button } from '../../components/ui/Button';
 import { RecruiterPageProps, Candidate } from './types';
@@ -9,8 +9,81 @@ interface RecruiterFindCandidatesProps extends RecruiterPageProps {
   loadingCandidates: boolean;
 }
 
+interface FullCandidateProfile {
+  _id: string;
+  fullName: string;
+  slug: string;
+  profilePicture?: string;
+  isVerified: boolean;
+  email?: string; // Top level or inside applicant
+  applicant?: { email: string };
+  profile: {
+    phone?: string;
+    profilePhoto?: string;
+    location?: {
+      city: string;
+      state: string;
+      country: string;
+    };
+    professionalSummary?: string;
+    skills?: Array<{
+      name: string;
+      isVerified: boolean;
+    }>;
+    experience?: Array<{
+      jobTitle: string;
+      companyName: string;
+      employmentType: string;
+      location?: string;
+      startDate: Date;
+      endDate?: Date;
+      isCurrentlyWorking: boolean;
+    }>;
+    education?: Array<{
+      degreeName: string;
+      institution: string;
+      specialization?: string;
+      startYear: number;
+      endYear?: number;
+      score?: string;
+      grade?: string;
+    }>;
+    projects?: Array<{
+      title: string;
+      description: string;
+      techStack: string[];
+      githubLink?: string;
+      demoLink?: string;
+      isLive: boolean;
+    }>;
+    certifications?: Array<{
+      certificateName: string;
+      issuingOrganization: string;
+      issueDate?: Date;
+    }>;
+    socialProfiles?: {
+      linkedin?: string;
+      github?: string;
+      twitter?: string;
+      website?: string;
+    };
+    codingProfiles?: {
+      leetcode?: string;
+      hackerrank?: string;
+    };
+    documents?: {
+      resume?: string;
+      portfolioUrl?: string;
+    };
+  };
+}
+
 export function RecruiterFindCandidates({ candidates, loadingCandidates }: RecruiterFindCandidatesProps) {
   const [candidateSearch, setCandidateSearch] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedCandidateSummary, setSelectedCandidateSummary] = useState<Candidate | null>(null);
+  const [fullProfile, setFullProfile] = useState<FullCandidateProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   const filteredCandidates = candidates.filter(candidate =>
     candidateSearch === '' ||
@@ -20,7 +93,36 @@ export function RecruiterFindCandidates({ candidates, loadingCandidates }: Recru
     candidate.profile.currentRole.toLowerCase().includes(candidateSearch.toLowerCase())
   );
 
-  return (<div className="space-y-6 sm:space-y-8 animate-fade-in font-sans pb-20 sm:pb-12 px-4 pt-4 sm:px-0 sm:pt-0">
+  const fetchCandidateProfile = async (slugOrId: string) => {
+    try {
+      setLoadingProfile(true);
+      setFullProfile(null);
+      const API_URL = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${API_URL}/api/candidates/profile/${slugOrId}`);
+
+      if (response.ok) {
+        const result = await response.json();
+        setFullProfile(result.data);
+      } else {
+        console.error('Failed to fetch profile');
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const handleViewProfile = (candidate: Candidate) => {
+    setSelectedCandidateSummary(candidate);
+    setShowProfileModal(true);
+    const identifier = candidate.slug || candidate._id;
+    if (identifier) {
+      fetchCandidateProfile(identifier);
+    }
+  };
+
+  return (<><div className="space-y-6 sm:space-y-8 animate-fade-in font-sans pb-20 sm:pb-12 px-4 pt-4 sm:px-0 sm:pt-0">
     {/* Header Banner */}
     <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-900 text-white p-6 sm:p-8 md:p-10 shadow-xl ring-1 ring-white/10">
       {/* Grid Pattern */}
@@ -137,19 +239,18 @@ export function RecruiterFindCandidates({ candidates, loadingCandidates }: Recru
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-5 border-t border-slate-100 mt-auto">
-              <div className="text-xs text-slate-400 font-medium">
+            <div className="flex items-center justify-end pt-5 border-t border-slate-100 mt-auto">
+              <div className="text-xs text-slate-400 font-medium mr-auto">
                 Verified since {new Date(candidate.verifiedAt).toLocaleDateString()}
               </div>
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" className="border-slate-200 hover:bg-slate-50 text-slate-700">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Message
-                </Button>
-                <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/10">
-                  View Full Profile
-                </Button>
-              </div>
+
+              <Button
+                size="sm"
+                className="bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/10"
+                onClick={() => handleViewProfile(candidate)}
+              >
+                View Full Profile
+              </Button>
             </div>
           </div>
         ))}
@@ -183,5 +284,205 @@ export function RecruiterFindCandidates({ candidates, loadingCandidates }: Recru
       </div>
     )}
   </div>
+
+    {/* Profile Modal */}
+    {
+      showProfileModal && selectedCandidateSummary && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200" onClick={() => setShowProfileModal(false)}>
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4 flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Candidate Profile</h2>
+                <p className="text-sm text-slate-500">Viewing profile of <span className="text-blue-600 font-medium">{selectedCandidateSummary.profile.fullName}</span></p>
+              </div>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-0">
+              {loadingProfile ? (
+                <div className="flex flex-col items-center justify-center py-24">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                  <p className="text-slate-500 font-medium">Loading full profile details...</p>
+                </div>
+              ) : fullProfile ? (
+                <>
+                  {/* Hero Section */}
+                  <div className="bg-slate-50 px-4 sm:px-8 py-8 sm:py-10 border-b border-slate-200">
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                      <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+                        {fullProfile.profile?.profilePhoto || fullProfile.profilePicture ? (
+                          <img
+                            src={fullProfile.profile?.profilePhoto || fullProfile.profilePicture}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-slate-300">
+                            {(fullProfile.fullName || 'U').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-center md:text-left">
+                        <h2 className="text-2xl font-bold text-slate-900 flex items-center justify-center md:justify-start gap-2">
+                          {fullProfile.fullName}
+                          {fullProfile.isVerified && (
+                            <CheckCircle className="h-5 w-5 text-blue-500" />
+                          )}
+                        </h2>
+                        <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-3 text-sm text-slate-600">
+                          {fullProfile.email && <span className="flex items-center gap-1.5"><Mail className="w-4 h-4 text-slate-400" /> {fullProfile.email}</span>}
+                          {fullProfile.applicant?.email && !fullProfile.email && <span className="flex items-center gap-1.5"><Mail className="w-4 h-4 text-slate-400" /> {fullProfile.applicant.email}</span>}
+                          {fullProfile.profile?.location && (
+                            <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-slate-400" /> {fullProfile.profile.location.city}, {fullProfile.profile.location.state}</span>
+                          )}
+                          {fullProfile.profile?.phone && (
+                            <span className="flex items-center gap-1.5"><Phone className="w-4 h-4 text-slate-400" /> {fullProfile.profile.phone}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-4 sm:px-8 py-8 space-y-8">
+                    {/* Professional Summary */}
+                    {fullProfile.profile?.professionalSummary && (
+                      <section>
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          About
+                        </h3>
+                        <p className="text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                          {fullProfile.profile.professionalSummary}
+                        </p>
+                      </section>
+                    )}
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                      {/* Experience */}
+                      {fullProfile.profile?.experience && fullProfile.profile.experience.length > 0 && (
+                        <section>
+                          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <Briefcase className="h-4 w-4 text-blue-500" /> Experience
+                          </h3>
+                          <div className="space-y-4">
+                            {fullProfile.profile.experience.map((exp, idx) => (
+                              <div key={idx} className="relative pl-6 border-l-2 border-slate-100 pb-4 last:pb-0">
+                                <div className="absolute top-0 left-[-7px] w-3 h-3 rounded-full bg-blue-500 border-2 border-white"></div>
+                                <h4 className="font-bold text-slate-900">{exp.jobTitle}</h4>
+                                <div className="text-slate-600 text-sm font-medium mb-1">{exp.companyName}</div>
+                                <div className="text-xs text-slate-400 uppercase tracking-wide">
+                                  {new Date(exp.startDate).toLocaleDateString()} - {exp.isCurrentlyWorking ? 'Present' : (exp.endDate ? new Date(exp.endDate).toLocaleDateString() : '')}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
+                      )}
+
+                      {/* Education */}
+                      {fullProfile.profile?.education && fullProfile.profile.education.length > 0 && (
+                        <section>
+                          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-indigo-500" /> Education
+                          </h3>
+                          <div className="space-y-4">
+                            {fullProfile.profile.education.map((edu, idx) => (
+                              <div key={idx} className="relative pl-6 border-l-2 border-slate-100 pb-4 last:pb-0">
+                                <div className="absolute top-0 left-[-7px] w-3 h-3 rounded-full bg-indigo-500 border-2 border-white"></div>
+                                <h4 className="font-bold text-slate-900">{edu.degreeName}</h4>
+                                <div className="text-slate-600 text-sm font-medium mb-1">{edu.institution}</div>
+                                <div className="text-xs text-slate-400 uppercase tracking-wide">
+                                  {edu.startYear} - {edu.endYear || 'Present'} {edu.grade && `• Grade: ${edu.grade}`}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
+                      )}
+                    </div>
+
+                    {/* Skills */}
+                    {fullProfile.profile?.skills && fullProfile.profile.skills.length > 0 && (
+                      <section>
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <Star className="h-4 w-4 text-amber-500" /> Skills
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {fullProfile.profile.skills.map((skill, idx) => (
+                            <span
+                              key={idx}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${skill.isVerified
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : 'bg-white text-slate-700 border-slate-200'
+                                }`}
+                            >
+                              {skill.name}
+                            </span>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
+                    {/* Documents & Links */}
+                    {(fullProfile.profile?.documents || fullProfile.profile?.socialProfiles) && (
+                      <section className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                          Attachments & Links
+                        </h3>
+                        <div className="flex flex-wrap gap-4">
+                          {fullProfile.profile?.documents?.resume && (
+                            <a
+                              href={fullProfile.profile.documents.resume}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg hover:border-blue-400 hover:text-blue-600 transition-colors shadow-sm"
+                            >
+                              <FileText className="h-4 w-4" />
+                              <span>Resume</span>
+                            </a>
+                          )}
+                          {fullProfile.profile?.documents?.portfolioUrl && (
+                            <a
+                              href={fullProfile.profile.documents.portfolioUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg hover:border-blue-400 hover:text-blue-600 transition-colors shadow-sm"
+                            >
+                              <LinkIcon className="h-4 w-4" />
+                              <span>Portfolio</span>
+                            </a>
+                          )}
+                        </div>
+                      </section>
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="sticky bottom-0 bg-white border-t border-slate-100 px-4 sm:px-8 py-4 sm:py-5 flex justify-end gap-4 z-10">
+                    <Button
+                      onClick={() => setShowProfileModal(false)}
+                      className="bg-slate-900 hover:bg-slate-800 text-white"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-24">
+                  <p className="text-slate-500">Failed to load profile information. Please try again later.</p>
+                  <Button onClick={() => setShowProfileModal(false)} className="mt-4" variant="outline">Close</Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+  </>
   );
 }

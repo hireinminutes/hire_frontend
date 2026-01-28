@@ -136,7 +136,7 @@ export function RecruiterLayout({
                   relative w-full flex items-center transition-all duration-200 group
                   ${isActive
                     ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-900/20'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }
                   ${isCollapsed ? 'justify-center rounded-xl w-12 h-12 mx-auto' : 'px-4 py-3 rounded-xl gap-3'}
                 `}
