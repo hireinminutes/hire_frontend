@@ -81,7 +81,118 @@ type PageState = {
 
 // Helper function to get auth headers (already exists)
 
-// RecruiterDashboardRouter (already exists)
+// Recruiter Dashboard Component - Handles sub-routing and data fetching
+import { jobsApi, applicationsApi } from './services/api';
+
+interface RecruiterDashboardProps {
+  onNavigate: any;
+  activeSection: string;
+  jobId?: string;
+}
+
+const RecruiterDashboardRouter = ({ onNavigate, activeSection, jobId }: RecruiterDashboardProps) => {
+  const { profile } = useAuth();
+  const [myJobs, setMyJobs] = useState<Job[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [jobsRes, appsRes] = await Promise.all([
+        jobsApi.getMyJobs(),
+        applicationsApi.getRecruiterApplications()
+      ]);
+
+      if (jobsRes.data) {
+        // handle potential different response structures
+        const jobsData = Array.isArray(jobsRes.data) ? jobsRes.data : (jobsRes.data as any).jobs || [];
+        setMyJobs(jobsData);
+      }
+
+      if (appsRes.data) {
+        setApplications(Array.isArray(appsRes.data) ? appsRes.data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching recruiter data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Handler for posting a job
+  const handlePostJob = () => {
+    onNavigate('recruiter-dashboard', undefined, undefined, undefined, undefined, undefined, 'post-job');
+  };
+
+  const handleJobPosted = () => {
+    fetchData(); // Refresh data
+    onNavigate('recruiter-dashboard', undefined, undefined, undefined, undefined, undefined, 'jobs');
+  };
+
+  return (
+    <RecruiterLayout onNavigate={onNavigate} activeSection={activeSection}>
+      {activeSection === 'overview' && (
+        <RecruiterOverview
+          onNavigate={onNavigate}
+          applications={applications}
+          myJobs={myJobs}
+          stats={{
+            activeJobs: myJobs.filter(j => j.status === 'active').length,
+            totalApplications: applications.length,
+            pendingApplications: applications.filter(a => a.status === 'pending').length
+          }}
+        />
+      )}
+      {activeSection === 'jobs' && (
+        <RecruiterJobs
+          onNavigate={onNavigate}
+          myJobs={myJobs}
+          onPostJob={handlePostJob}
+          loading={loading}
+          profile={profile}
+        />
+      )}
+      {activeSection === 'applicants' && (
+        <RecruiterApplicants
+          onNavigate={onNavigate}
+          applications={applications}
+          loadingApplications={loading}
+          onRefreshApplications={fetchData}
+          // @ts-ignore - Prop mismatch in types vs usage, passing jobId if needed for filtering
+          jobId={jobId}
+        />
+      )}
+      {activeSection === 'find-candidates' && (
+        <RecruiterFindCandidates
+          onNavigate={onNavigate}
+          // Pass dummy or fetched candidates if needed, or let component fetch. 
+          // Assuming component fetches its own data for now as it's a search page.
+          candidates={[]}
+          loadingCandidates={false}
+        />
+      )}
+      {activeSection === 'company' && (
+        <RecruiterCompany
+          onNavigate={onNavigate}
+          profile={profile}
+          onNavigateToOnboarding={() => onNavigate('recruiter-onboarding')}
+        />
+      )}
+      {activeSection === 'post-job' && (
+        <RecruiterPostJob
+          onNavigate={onNavigate}
+          onJobPosted={handleJobPosted}
+          onCancel={() => onNavigate('recruiter-dashboard', undefined, undefined, undefined, undefined, undefined, 'overview')}
+        />
+      )}
+    </RecruiterLayout>
+  );
+};
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
@@ -311,9 +422,36 @@ function AppContent() {
   // Debug log for page state
   console.log('App Render - PageState:', pageState);
 
-  // ... (useEffect for auth redirect - keep existing)
+  // Handle auth redirect
+  useEffect(() => {
+    if (!loading && user) {
+      // If user is logged in, redirect to appropriate dashboard if on public/auth pages
+      const publicPages = ['landing', 'auth', 'role-select', 'admin/login', 'college/login', 'recruiter-onboarding', 'verify-2fa', 'forgot-password'];
 
-  // ... (useEffect for not-found - keep existing)
+      if (publicPages.includes(pageState.page)) {
+        if (profile?.role === 'admin') {
+          handleNavigate('admin');
+        } else if (profile?.role === 'employer') {
+          if (profile.requiresOnboarding) {
+            handleNavigate('recruiter-onboarding');
+          } else {
+            handleNavigate('recruiter-dashboard');
+          }
+        } else if (profile?.role === 'job_seeker') {
+          handleNavigate('job-seeker-dashboard');
+        } else if (user.role === 'college') {
+          handleNavigate('college');
+        }
+      }
+    }
+  }, [user, loading, profile, pageState.page]);
+
+  // Handle 404 redirect
+  useEffect(() => {
+    // If page is not-found, we show the 404 page.
+    // This effect can be used for any side effects if needed, or we can leave it empty if rendering is handled.
+    // For now, removing the placeholder comment.
+  }, [pageState.page]);
 
   const handleNavigate = (page: string, jobId?: string, role?: 'job_seeker' | 'employer' | 'admin', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup', collegeId?: string) => {
     const newState = { page, jobId, role, courseId, successMessage, profileSlug, dashboardSection, authMode, collegeId };

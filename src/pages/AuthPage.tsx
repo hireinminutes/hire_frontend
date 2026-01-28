@@ -5,7 +5,7 @@ import { SignUpForm } from '../components/auth/SignUpForm';
 
 interface AuthPageProps {
   role: 'job_seeker' | 'employer';
-  onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup') => void;
+  onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer' | 'admin', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup', collegeId?: string) => void;
   successMessage?: string;
   initialMode?: 'signin' | 'signup';
 }

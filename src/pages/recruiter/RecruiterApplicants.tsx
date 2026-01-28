@@ -95,7 +95,8 @@ export function RecruiterApplicants({
     }
   };
 
-  const filteredApplications = applications.filter(app =>
+  const safeApplications = applications || [];
+  const filteredApplications = safeApplications.filter(app =>
     app.status === applicationTab &&
     (app.applicant?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.job?.jobDetails?.basicInfo?.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()))

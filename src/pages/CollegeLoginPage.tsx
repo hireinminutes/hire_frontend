@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 
 interface CollegeLoginPageProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer' | 'admin', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup', collegeId?: string) => void;
 }
 
 const CollegeLoginPage = ({ onNavigate }: CollegeLoginPageProps) => {
@@ -170,9 +170,18 @@ const CollegeLoginPage = ({ onNavigate }: CollegeLoginPageProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-widest">
-                    Password
-                  </label>
+                  <div className="flex justify-between items-center">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-widest">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('forgot-password', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined)}
+                      className="text-xs font-bold text-slate-500 hover:text-teal-600 transition-colors uppercase tracking-wide"
+                    >
+                      Forgot?
+                    </button>
+                  </div>
                   <div className="relative group">
                     <input
                       id="password"
@@ -216,17 +225,6 @@ const CollegeLoginPage = ({ onNavigate }: CollegeLoginPageProps) => {
                   {loading ? 'Authenticating...' : 'Sign In'}
                 </Button>
               </form>
-
-              <div className="mt-8 text-center pt-6 border-t border-slate-100">
-                <p className="text-slate-500 text-sm mb-4">New Institution?</p>
-                <button
-                  onClick={() => onNavigate('college/register')}
-                  className="inline-flex items-center justify-center w-full py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50 transition-all group"
-                >
-                  Register College
-                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
             </div>
           </div>
         </div>

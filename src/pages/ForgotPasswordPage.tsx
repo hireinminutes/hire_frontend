@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/Button';
 import {
   ArrowLeft, Mail, Lock, Shield, CheckCircle,
-  Key, Eye, EyeOff, AlertCircle, Briefcase, User
+  Key, Eye, EyeOff, AlertCircle, Briefcase, User, GraduationCap
 } from 'lucide-react';
 
 interface ForgotPasswordPageProps {
-  role?: 'job_seeker' | 'employer';
+  role?: 'job_seeker' | 'employer' | 'college';
   onNavigate: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string) => void;
 }
 
@@ -14,7 +14,49 @@ type Step = 'email' | 'otp' | 'reset';
 
 export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps) {
   const [currentStep, setCurrentStep] = useState<Step>('email');
-  const [selectedRole, setSelectedRole] = useState<'job_seeker' | 'employer'>(role || 'job_seeker');
+  const [selectedRole, setSelectedRole] = useState<'job_seeker' | 'employer' | 'college'>(role || 'job_seeker');
+  // ... existing code ...
+
+  {/* Role Toggle */ }
+  {
+    currentStep === 'email' && (
+      <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
+        <button
+          type="button"
+          onClick={() => setSelectedRole('job_seeker')}
+          className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-lg transition-all ${selectedRole === 'job_seeker'
+            ? 'bg-white text-blue-600 shadow-sm'
+            : 'text-slate-500 hover:text-slate-700'
+            }`}
+        >
+          <User className="w-4 h-4 mr-2" />
+          Job Seeker
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedRole('employer')}
+          className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-lg transition-all ${selectedRole === 'employer'
+            ? 'bg-white text-purple-600 shadow-sm'
+            : 'text-slate-500 hover:text-slate-700'
+            }`}
+        >
+          <Briefcase className="w-4 h-4 mr-2" />
+          Recruiter
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedRole('college')}
+          className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-lg transition-all ${selectedRole === 'college'
+            ? 'bg-white text-teal-600 shadow-sm'
+            : 'text-slate-500 hover:text-slate-700'
+            }`}
+        >
+          <GraduationCap className="w-4 h-4 mr-2" />
+          College
+        </button>
+      </div>
+    )
+  }
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -213,7 +255,7 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
               {(['email', 'otp', 'reset'] as Step[]).map((step, index) => (
                 <div key={step} className="flex items-center">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === step
-                    ? selectedRole === 'employer' ? 'bg-purple-600 text-white' : 'bg-blue-500 text-white'
+                    ? selectedRole === 'employer' ? 'bg-purple-600 text-white' : selectedRole === 'college' ? 'bg-teal-600 text-white' : 'bg-blue-500 text-white'
                     : index < (['email', 'otp', 'reset'] as Step[]).indexOf(currentStep)
                       ? 'bg-green-500 text-white'
                       : 'bg-slate-200 text-slate-500'
@@ -239,7 +281,9 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
           <div className="text-center mb-6">
             <div className={`w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg ${selectedRole === 'employer'
               ? 'bg-gradient-to-br from-purple-500 to-indigo-500'
-              : 'bg-gradient-to-br from-blue-500 to-cyan-500'
+              : selectedRole === 'college'
+                ? 'bg-gradient-to-br from-teal-500 to-emerald-500'
+                : 'bg-gradient-to-br from-blue-500 to-cyan-500'
               }`}>
               <StepIcon className="h-6 w-6 text-white" />
             </div>
@@ -269,7 +313,9 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
                     placeholder="your@email.com"
                     className={`w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 outline-none transition-all placeholder:text-slate-400 ${selectedRole === 'employer'
                       ? 'focus:border-purple-500 focus:ring-purple-200'
-                      : 'focus:border-blue-500 focus:ring-blue-200'
+                      : selectedRole === 'college'
+                        ? 'focus:border-teal-500 focus:ring-teal-200'
+                        : 'focus:border-blue-500 focus:ring-blue-200'
                       }`}
                     required
                   />
@@ -314,7 +360,9 @@ export function ForgotPasswordPage({ role, onNavigate }: ForgotPasswordPageProps
                     maxLength={6}
                     className={`w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 outline-none transition-all placeholder:text-slate-400 text-center text-lg font-mono tracking-widest ${selectedRole === 'employer'
                       ? 'focus:border-purple-500 focus:ring-purple-200'
-                      : 'focus:border-blue-500 focus:ring-blue-200'
+                      : selectedRole === 'college'
+                        ? 'focus:border-teal-500 focus:ring-teal-200'
+                        : 'focus:border-blue-500 focus:ring-blue-200'
                       }`}
                     required
                   />

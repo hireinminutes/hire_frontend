@@ -212,10 +212,7 @@ export const adminApi = {
     return response.data;
   },
 
-  getCollegeStudents: async (id: string) => {
-    const response = await api.get<{ success: boolean; data: any[] }>(`/api/admin/colleges/${id}/students`);
-    return response.data;
-  },
+
 
   approveRecruiter: (id: string) => api.put<unknown>(`/api/admin/recruiters/${id}/approve`),
 

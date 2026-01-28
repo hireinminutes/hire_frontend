@@ -25,41 +25,21 @@ export const CollegeDashboardLayout: React.FC<CollegeDashboardLayoutProps> = ({
   onNavigate,
   activeSection
 }) => {
-  const { user, signOut } = useAuth();
-  const [profile, setProfile] = useState<CollegeProfile | null>(null);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showCreateStudent, setShowCreateStudent] = useState(false);
-  const [newStudent, setNewStudent] = useState<NewStudent>({
-    fullName: '',
-    email: '',
-    password: ''
-  });
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-
-  // Layout States
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const authCheckRef = useRef(false);
-
   // Authentication Check
+  const { user, signOut, loading: authLoading } = useAuth();
+
   useEffect(() => {
-    if (!authCheckRef.current && !loading) {
+    if (!authLoading && !loading) {
       if (!user) {
         onNavigate('college/login');
-        authCheckRef.current = true;
         return;
       }
       if (user.role !== 'college') {
         onNavigate('role-select');
-        authCheckRef.current = true;
         return;
       }
     }
-  }, [user, onNavigate, loading]);
+  }, [user, onNavigate, loading, authLoading]);
 
   const fetchCollegeProfile = useCallback(async () => {
     try {
