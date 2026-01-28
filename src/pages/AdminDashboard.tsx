@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
+import { useToast } from '../contexts/ToastContext';
+import { adminApi } from '../services/api';
 import {
   Users, Briefcase, Bell, CheckCircle, BookOpen,
-  Shield, BarChart3, Megaphone, Mail, LogOut, Activity
+  Shield, BarChart3, Megaphone, Mail, LogOut, Activity, School
 } from 'lucide-react';
 
 // Import types and API functions
@@ -29,6 +31,8 @@ import { ApprovalsTab } from './admin/ApprovalsTab';
 import { JobsTab } from './admin/JobsTab';
 import { AdminPostJob } from './admin/AdminPostJob';
 import { VerificationTab } from './admin/VerificationTab';
+import { CollegesTab } from './admin/CollegesTab';
+import { CollegeStudentsModal } from './admin/CollegeStudentsModal';
 import { CoursesTab, CourseModal } from './admin/CoursesTab';
 import { AlertsTab, AlertModal } from './admin/AlertsTab';
 import { AdsTab, AdModal, ImageModal } from './admin/AdsTab';
@@ -51,12 +55,13 @@ const fileToBase64 = (file: File): Promise<string> => {
 
 interface AdminDashboardProps {
   activeSection?: string;
-  onNavigate?: (page: string, jobId?: string, role?: 'job_seeker' | 'employer', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup') => void;
+  onNavigate?: (page: string, jobId?: string, role?: 'job_seeker' | 'employer' | 'admin', courseId?: string, successMessage?: string, profileSlug?: string, dashboardSection?: string, authMode?: 'signin' | 'signup', collegeId?: string) => void;
 }
 
 export function AdminDashboard({ activeSection = 'overview', onNavigate }: AdminDashboardProps) {
   const { profile, signOut } = useAuth();
   const { socket, isConnected, on, off } = useSocket();
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Data cache to prevent redundant API calls
@@ -67,6 +72,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     jobs?: any[];
     verificationApplications?: any[];
     courses?: any[];
+    colleges?: any[];
     alerts?: any[];
     ads?: any[];
     contacts?: any[];
@@ -115,6 +121,15 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
   // Course management states
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
+  const [colleges, setColleges] = useState<any[]>([]);
+  const [collegesLoading, setCollegesLoading] = useState(false);
+
+  // College Students Modal State
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [selectedCollegeName, setSelectedCollegeName] = useState('');
+  const [collegeStudents, setCollegeStudents] = useState<any[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
   const [showEditCourseModal, setShowEditCourseModal] = useState(false);
   const [showDeleteCourseModal, setShowDeleteCourseModal] = useState(false);
@@ -299,6 +314,14 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
       } else {
         setAlertsLoading(true);
         fetchAlerts();
+      }
+    } else if (activeSection === 'colleges') {
+      if (isCacheValid('colleges') && dataCache.colleges) {
+        setColleges(dataCache.colleges);
+        setCollegesLoading(false);
+      } else {
+        setCollegesLoading(true);
+        fetchColleges();
       }
     } else if (activeSection === 'ads') {
       if (isCacheValid('ads') && dataCache.ads) {
@@ -611,6 +634,26 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
       console.error('Error fetching alerts:', error);
     } finally {
       setAlertsLoading(false);
+    }
+  };
+
+  const fetchColleges = async () => {
+    try {
+      setCollegesLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/admin/colleges`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const collegesData = data.data || [];
+        setColleges(collegesData);
+        updateCache('colleges', collegesData);
+      }
+    } catch (error) {
+      console.error('Error fetching colleges:', error);
+    } finally {
+      setCollegesLoading(false);
     }
   };
 
@@ -1275,6 +1318,67 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     document.body.removeChild(link);
   };
 
+  const handleViewStudents = (collegeId: string, collegeName: string) => {
+    // Navigate to separate page
+    if (onNavigate) {
+      onNavigate('admin-college-students', undefined, undefined, undefined, undefined, undefined, undefined, undefined, collegeId);
+    }
+  };
+
+  const handleViewStudentProfile = (student: any) => {
+    setSelectedProfile(student);
+    setShowProfileModal(true);
+  };
+
+  const handleExportColleges = () => {
+    if (!colleges.length) return;
+
+    const headers = ['Name', 'Email', 'Status', 'Students', 'Location', 'Joined Date'];
+    const csvContent = [
+      headers.join(','),
+      ...colleges.map((college: any) => [
+        `"${college.name}"`,
+        `"${college.email}"`,
+        `"${college.status}"`,
+        `"${college.studentsCount}"`,
+        `"${college.location}"`,
+        `"${college.joinDate}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'colleges_list.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleApproveCollege = async (id: string) => {
+    try {
+      await adminApi.approveCollege(id);
+      showToast('College approved successfully', 'success');
+      fetchColleges(); // Refresh list
+    } catch (error: any) {
+      console.error('Error approving college:', error);
+      showToast(error.message || 'Failed to approve college', 'error');
+    }
+  };
+
+  const handleRejectCollege = async (id: string, reason: string) => {
+    try {
+      await adminApi.rejectCollege(id, reason);
+      showToast('College rejected successfully', 'success');
+      fetchColleges(); // Refresh list
+    } catch (error: any) {
+      console.error('Error rejecting college:', error);
+      showToast(error.message || 'Failed to reject college', 'error');
+    }
+  };
+
   // Ad handlers
   const handleAddAd = () => {
     setAdForm({
@@ -1404,6 +1508,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
     { id: 'jobs', label: 'Jobs', icon: Briefcase },
     { id: 'post-job', label: 'Post Job', icon: Briefcase },
     { id: 'verification', label: 'Verification', icon: Shield },
+    { id: 'colleges', label: 'Colleges', icon: School },
     { id: 'courses', label: 'Courses', icon: BookOpen },
     { id: 'alerts', label: 'Alerts', icon: Bell },
     { id: 'ads', label: 'Ads', icon: Megaphone },
@@ -1576,6 +1681,28 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
             />
           )}
 
+          {activeSection === 'colleges' && (
+            <CollegesTab
+              colleges={colleges}
+              loading={collegesLoading}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onExport={handleExportColleges}
+              onViewProfile={(college) => {
+                console.log('View college:', college);
+                // TODO: Implement view college modal
+              }}
+              onDeleteCollege={(college) => {
+                const collegeObj = typeof college === 'object' ? college : {};
+                setUserToDelete({ ...collegeObj, _userType: 'college' });
+                setShowDeleteDialog(true);
+              }}
+              onApproveCollege={handleApproveCollege}
+              onRejectCollege={handleRejectCollege}
+              onViewStudents={handleViewStudents}
+            />
+          )}
+
           {activeSection === 'courses' && (
             <CoursesTab
               courses={courses}
@@ -1644,6 +1771,14 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
         </div>
 
         {/* Modals */}
+        <CollegeStudentsModal
+          isOpen={showStudentsModal}
+          onClose={() => setShowStudentsModal(false)}
+          collegeName={selectedCollegeName}
+          students={collegeStudents}
+          loading={loadingStudents}
+          onViewProfile={handleViewStudentProfile}
+        />
         <DeleteDialog
           isOpen={showDeleteDialog}
           title="Delete User"

@@ -4,6 +4,7 @@ export * from './api';
 export { OverviewTab } from './OverviewTab';
 export { CandidatesTab } from './CandidatesTab';
 export { RecruitersTab } from './RecruitersTab';
+export { CollegesTab } from './CollegesTab';
 export { ApprovalsTab } from './ApprovalsTab';
 export { JobsTab } from './JobsTab';
 export { VerificationTab } from './VerificationTab';

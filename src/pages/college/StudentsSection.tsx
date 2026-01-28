@@ -21,8 +21,8 @@ export const StudentsSection: React.FC<StudentsSectionProps> = ({
   onEditStudent
 }) => {
   const filteredStudents = students.filter(student =>
-    student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (student.fullName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (student.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -71,17 +71,17 @@ export const StudentsSection: React.FC<StudentsSectionProps> = ({
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-center shrink-0">
                       <span className="text-indigo-600 font-black text-lg">
-                        {student.fullName.charAt(0).toUpperCase()}
+                        {(student.fullName?.charAt(0) || '?').toUpperCase()}
                       </span>
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className="font-bold text-slate-900 truncate text-base">{student.fullName}</h3>
+                        <h3 className="font-bold text-slate-900 truncate text-base">{student.fullName || 'Unknown Student'}</h3>
                         {student.isVerified && (
                           <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 font-medium mb-2 truncate">{student.email}</p>
+                      <p className="text-sm text-slate-500 font-medium mb-2 truncate">{student.email || 'No Email'}</p>
 
                       <div className="flex flex-wrap gap-3">
                         {student.profile?.phone && (
@@ -116,14 +116,17 @@ export const StudentsSection: React.FC<StudentsSectionProps> = ({
                 {student.profile?.skills && student.profile.skills.length > 0 && (
                   <div className="mt-4 pl-[64px]">
                     <div className="flex flex-wrap gap-2">
-                      {student.profile.skills.slice(0, 5).map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-wide rounded-lg shadow-sm"
-                        >
-                          {skill}
-                        </span>
-                      ))}
+                      {student.profile.skills.slice(0, 5).map((skill, index) => {
+                        const skillName = typeof skill === 'string' ? skill : skill.name;
+                        return (
+                          <span
+                            key={index}
+                            className="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-wide rounded-lg shadow-sm"
+                          >
+                            {skillName}
+                          </span>
+                        );
+                      })}
                       {student.profile.skills.length > 5 && (
                         <span className="px-2.5 py-1 bg-slate-50 text-slate-400 font-bold text-[10px] rounded-lg">
                           +{student.profile.skills.length - 5} more

@@ -96,6 +96,7 @@ export const CollegeDashboardLayout: React.FC<CollegeDashboardLayoutProps> = ({
       }
     } catch (error) {
       console.error('Error fetching students:', error);
+      // We might want to set an error state here to show in UI
     }
   }, []);
 

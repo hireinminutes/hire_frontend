@@ -197,7 +197,30 @@ export const adminApi = {
 
   getPendingApprovals: () => api.get<unknown[]>('/api/admin/recruiters/pending'),
 
+  getColleges: async () => {
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/admin/colleges');
+    return response.data;
+  },
+
+  approveCollege: async (id: string) => {
+    const response = await api.put<{ success: boolean; data: any }>(`/api/admin/colleges/${id}/approve`, {});
+    return response.data;
+  },
+
+  rejectCollege: async (id: string, reason: string) => {
+    const response = await api.put<{ success: boolean; data: any }>(`/api/admin/colleges/${id}/reject`, { reason });
+    return response.data;
+  },
+
+  getCollegeStudents: async (id: string) => {
+    const response = await api.get<{ success: boolean; data: any[] }>(`/api/admin/colleges/${id}/students`);
+    return response.data;
+  },
+
   approveRecruiter: (id: string) => api.put<unknown>(`/api/admin/recruiters/${id}/approve`),
+
+  getCollegeStudents: (id: string) =>
+    api.get<unknown[]>(`/api/admin/colleges/${id}/students`),
 
   rejectRecruiter: (id: string, reason: string) => api.put<unknown>(`/api/admin/recruiters/${id}/reject`, { reason }),
 
