@@ -38,7 +38,8 @@ const CollegeLoginPage = ({ onNavigate }: CollegeLoginPageProps) => {
 
     try {
       await collegeSignIn(formData.email, formData.password);
-      setLoginSuccess(true);
+      // Navigate immediately as state update might be async or batched
+      onNavigate('college');
     } catch (err: any) {
       const errorMessage = err.message || 'Login failed';
       if (errorMessage === 'REQUIRES_2FA') {

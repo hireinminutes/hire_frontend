@@ -43,17 +43,28 @@ export const CollegeDashboardLayout: React.FC<CollegeDashboardLayoutProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Only redirect if both auth loading and local data loading are done
     if (!authLoading && !loading) {
+      // If no user in context
       if (!user) {
+        // Double check: if we have a token and local profile loaded, we are probably fine
+        // and just waiting for context to catch up (or context failed but API succeeded)
+        const token = localStorage.getItem('token');
+        if (token && profile) {
+          return;
+        }
+
+        console.log('Redirecting to login: No user and no valid session found');
         onNavigate('college/login');
         return;
       }
+
       if (user.role !== 'college') {
         onNavigate('role-select');
         return;
       }
     }
-  }, [user, onNavigate, loading, authLoading]);
+  }, [user, onNavigate, loading, authLoading, profile]);
 
   const fetchCollegeProfile = useCallback(async () => {
     try {

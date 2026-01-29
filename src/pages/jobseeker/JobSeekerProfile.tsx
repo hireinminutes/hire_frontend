@@ -488,17 +488,7 @@ export function JobSeekerProfile(_props: JobSeekerPageProps) {
             </div>
           </Card>
 
-          {/* Public Profile */}
-          <Card className="p-6 rounded-xl border border-slate-200 shadow-sm bg-white md:col-span-2 lg:col-span-1">
-            <h3 className="font-semibold text-slate-900 mb-2">Public Link</h3>
-            <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100 mb-2 text-xs text-slate-500 font-mono overflow-hidden">
-              <span className="truncate">Hire In Minutes.com/u/{profile?.id}</span>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => {
-              navigator.clipboard.writeText(`${window.location.origin}/candidate/${profile?.id}`);
-              showToast('Copied!');
-            }} className="w-full text-slate-600">Copy Link</Button>
-          </Card>
+
         </div>
 
         {/* RIGHT MAIN CONTENT (8 Cols) */}
