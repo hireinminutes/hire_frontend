@@ -1579,7 +1579,7 @@ export function AdminDashboard({ activeSection = 'overview', onNavigate }: Admin
             </div>
             <div className="flex items-center gap-3">
               <Button
-                onClick={() => { signOut(); onNavigate?.('landing'); }}
+                onClick={() => { signOut(); onNavigate?.('role-select'); }}
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 transition-all font-medium"
               >
                 <LogOut className="h-4 w-4" />

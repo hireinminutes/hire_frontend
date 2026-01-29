@@ -76,12 +76,12 @@ export function Navbar({ onNavigate, currentPage = 'landing' }: NavbarProps) {
     const handleSignOut = async () => {
         try {
             await signOut();
-            onNavigate('landing');
+            onNavigate('role-select');
             setShowUserMenu(false);
             setIsMobileMenuOpen(false);
         } catch (error) {
             console.error('Logout error:', error);
-            onNavigate('landing');
+            onNavigate('role-select');
         }
     };
 

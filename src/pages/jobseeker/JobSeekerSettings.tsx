@@ -68,7 +68,7 @@ export function JobSeekerSettings({ onNavigate }: JobSeekerPageProps) {
   /* Password and Email handlers removed as simplified for this view */
 
   const handleLogout = async () => {
-    try { await signOut(); onNavigate('landing'); } catch (e) { console.error(e); }
+    try { await signOut(); onNavigate('role-select'); } catch (e) { console.error(e); }
   };
 
   const handleChangePassword = async () => {

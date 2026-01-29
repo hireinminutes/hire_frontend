@@ -52,10 +52,10 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
   const handleSignOut = async () => {
     try {
       await signOut();
-      onNavigate('landing');
+      onNavigate('role-select');
     } catch (error) {
       console.error('Logout error:', error);
-      onNavigate('landing');
+      onNavigate('role-select');
     }
   };
 
