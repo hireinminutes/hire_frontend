@@ -455,7 +455,7 @@ function AppContent() {
             handleNavigate('recruiter-dashboard');
           }
         } else if (profile?.role === 'job_seeker') {
-          handleNavigate('job-seeker-dashboard');
+          handleNavigate('job-seeker-dashboard', undefined, undefined, undefined, undefined, undefined, 'overview');
         } else if (user.role === 'college') {
           handleNavigate('college');
         }
