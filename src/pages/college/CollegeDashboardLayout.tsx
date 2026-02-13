@@ -265,7 +265,7 @@ export const CollegeDashboardLayout: React.FC<CollegeDashboardLayoutProps> = ({
           <div className="pt-6 mt-6 border-t border-slate-800">
             {!isCollapsed && <p className="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 animate-fade-in">Account</p>}
             <button
-              onClick={() => { signOut(); onNavigate('role-select'); }}
+              onClick={() => { signOut(); onNavigate('landing'); }}
               className={`
                  flex items-center transition-colors text-slate-400 hover:bg-red-900/20 hover:text-red-400
                  ${isCollapsed ? 'justify-center rounded-xl w-12 h-12 mx-auto' : 'w-full gap-3 px-4 py-3 rounded-xl text-sm font-medium'}
@@ -343,7 +343,7 @@ export const CollegeDashboardLayout: React.FC<CollegeDashboardLayoutProps> = ({
                     </button>
                   </div>
                   <div className="border-t border-slate-50 py-1">
-                    <button onClick={() => { signOut(); onNavigate('role-select'); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
+                    <button onClick={() => { signOut(); onNavigate('landing'); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
                       <LogOut className="w-4 h-4" /> Sign Out
                     </button>
                   </div>

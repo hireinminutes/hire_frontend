@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Download, Loader2, TrendingUp } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import html2canvas from 'html2canvas';
+
 
 interface SkillPassportProps {
     userProfile?: any;
@@ -51,6 +51,7 @@ export function SkillPassport({ userProfile }: SkillPassportProps) {
             clone.style.transform = 'none'; // remove any transforms
             document.body.appendChild(clone);
 
+            const html2canvas = (await import('html2canvas')).default;
             const canvas = await html2canvas(clone, {
                 backgroundColor: null,
                 scale: 3,
